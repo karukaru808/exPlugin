@@ -1,14 +1,25 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Window x:Class="YukarinetteSamplePlugin.OptionWindow" UseLayoutRounding="True" SnapsToDevicePixels="True" FontFamily="Meiryo" Title="SamplePlugin" SizeToContent="WidthAndHeight" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Window x:Class="exPlugin.OptionWindow" UseLayoutRounding="True" SnapsToDevicePixels="True" FontFamily="Meiryo" Title="exPlugin" SizeToContent="WidthAndHeight" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StackPanel>
-        <GroupBox Header="WAVEPlugin" Margin="10,5,10,10">
+        <GroupBox Header="exPlugin" Margin="10,5,10,10">
             <StackPanel>
                 <!-- 設定欄 -->
-                <TextBlock Margin="5,5,5,0">WAVESetting</TextBlock>
+
+                <!-- コンボボックスでVOICELOID選択 -->
+                <TextBlock Margin="5,5,5,0">使用するVOICELOIDを選択してください。正しく設定しないとexVOICE再生中に喋りだします。</TextBlock>
+
+                <ComboBox Name="VOICELOIDSelected" Margin="10,5,10,0">
+                    <ComboBoxItem Content="結月ゆかり/結月ゆかりEX" />
+                    <ComboBoxItem Content="東北きりたん" />
+                </ComboBox>
+                
+                <!-- EXCELファイルの選択 -->
+                <TextBlock Margin="5,15,5,0">キーワードとexVOICEを関連付けした CSVファイル を選択して下さい。</TextBlock>
                 <StackPanel Orientation="Horizontal">
-                    <TextBox Name="WAVEPathTextBox" Width="400" Margin="10" />
-                    <Button Height="25" Width="50" Margin="0,0,10,0" Click="WAVEPathButton_Click">参照</Button>
+                    <TextBox Name="CSVPathTextBox" Width="455" Margin="10,5,10,10" />
+                    <Button Height="25" Width="50" Margin="0,0,10,0" Click="CSVPathButton_Click">参照</Button>
                 </StackPanel>
+
             </StackPanel>
         </GroupBox>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">

@@ -1,20 +1,20 @@
 ﻿using Yukarinette;
 
-namespace YukarinetteSamplePlugin
+namespace exPlugin
 {
     //こっちは主に呼び出し側（？）
-    public class SamplePlugin : IYukarinetteInterface
+    public class exPlugin : IYukarinetteInterface
     {
         ConfigManager configManager;
 
-        SampleManager sampleManager;
+        exManager exManager;
 
         public override string Name
         {
             get
             {
                 // プラグイン名
-                return "SamplePlugin";
+                return "exPlugin";
             }
         }
 
@@ -22,9 +22,9 @@ namespace YukarinetteSamplePlugin
         {
             // 起動時実行
             configManager = new ConfigManager();
-            configManager.Load(Name);
+            configManager.LoadConfig(Name);
 
-            sampleManager = new SampleManager();
+            exManager = new exManager();
         }
 
         public override void Closed()
@@ -42,19 +42,25 @@ namespace YukarinetteSamplePlugin
         public override void SpeechRecognitionStart()
         {
             // 音声認識開始時実行
-            sampleManager.Create(configManager.Data.SampleSetting);
+            //音声認識スタートボタン押したときに呼び出される
+            exManager.Create(configManager.configData.csvPath);
+            //YukarinetteConsoleMessage.Instance.WriteMessage("1");
         }
 
         public override void SpeechRecognitionStop()
         {
             // 音声認識終了時実行
-            sampleManager.Dispose();
+            //音声認識終了ボタン押したときに呼び出される
+            exManager.Dispose();
+            //YukarinetteConsoleMessage.Instance.WriteMessage("2");
         }
 
         public override void Speech(string text)
         {
             // 音声認識時実行
-            sampleManager.Speech(text);
+            //何か喋った時に呼び出される
+            exManager.Speech(text);
+            //YukarinetteConsoleMessage.Instance.WriteMessage("3");
         }
 
     }

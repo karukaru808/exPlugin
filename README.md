@@ -1,2 +1,2 @@
-# YukarinetteEXPlugin
+# exPlugin
 ゆかりねっとでキーワードに反応してexVOICEを再生してくれるプラグイン

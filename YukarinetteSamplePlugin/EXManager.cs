@@ -1,19 +1,19 @@
 ﻿using System;
+using System.Media;
 using Yukarinette;
-using YukarinetteSamplePlugin;
 
-namespace YukarinetteSamplePlugin
+namespace exPlugin
 {
     // プラグインごとの動作
-    public class SampleManager
+    public class exManager
     {
-        static string WAVEPath;
+        static string csvPath;
 
-        public void Create(string sampleSetting)
+        public void Create(string PathString)
         {
             // 音声認識開始時の初期化とか
-            //sampleSettingにあるWAVEファイルのPathを取得する
-            WAVEPath = sampleSetting;
+            //CSVファイルのPathを取得する
+            csvPath = PathString;
         }
 
         public void Dispose()
@@ -26,14 +26,15 @@ namespace YukarinetteSamplePlugin
             // 音声認識時のメイン処理
             // textに認識した本文が入っている
 
-            //ここからWAVE Plugin
+            //ここから exPlugin
 
             ////////////////////////////////////////////////////////////////////////////
             //本来はここで登録したキーワードと認識した文章が合致しているかチェックする//
             ////////////////////////////////////////////////////////////////////////////
 
             //デバッグ用文章
-            YukarinetteConsoleMessage.Instance.WriteMessage(WAVEPath);
+            YukarinetteConsoleMessage.Instance.WriteMessage(csvPath);
+            YukarinetteConsoleMessage.Instance.WriteMessage(text);
 
             //止めてから再生（いらない？）
             //StopSound();
@@ -41,14 +42,11 @@ namespace YukarinetteSamplePlugin
         }
 
         //以下WAVEファイルを再生するためのプログラム
-        //初期化（？）
-        private System.Media.SoundPlayer player = null;
-
         //再生用
         private void PlaySound()
         {
             //WAVEファイルの準備
-            player = new System.Media.SoundPlayer(@WAVEPath);
+            SoundPlayer player = new SoundPlayer(@csvPath);
 
             //WAVEファイルが存在するかチェック
             try
@@ -67,6 +65,7 @@ namespace YukarinetteSamplePlugin
         }
 
         //停止用（動作的にいらない？まあ保険で入れておこう...）
+        /*
         private void StopSound()
         {
             if (player != null)
@@ -76,6 +75,7 @@ namespace YukarinetteSamplePlugin
                 player = null;
             }
         }
+        */
 
     }
 }

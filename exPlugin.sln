@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YukarinetteSamplePlugin", "YukarinetteSamplePlugin\YukarinetteSamplePlugin.csproj", "{1EC8D8D2-72D7-43C2-8A0C-0997ECF0ED05}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "exPlugin", "YukarinetteSamplePlugin\exPlugin.csproj", "{1EC8D8D2-72D7-43C2-8A0C-0997ECF0ED05}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
