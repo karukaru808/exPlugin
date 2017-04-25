@@ -1,4 +1,6 @@
-﻿namespace exPlugin
+﻿using System.IO;
+
+namespace exPlugin
 {
     public class ConfigData
     {
@@ -14,12 +16,11 @@
             set;
         }
 
-        //ConfigManager configManager;
         public ConfigData()
         {
             // 設定項目初期化
-            csvPath = "";
-            //csvPath = configManager.configData.csvPath;
+            ConfigManager configManager = new ConfigManager();
+            csvPath = configManager.csvPath;
             VOICELOIDIndex = 0;
         }
         

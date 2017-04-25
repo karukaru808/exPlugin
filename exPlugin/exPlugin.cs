@@ -23,6 +23,13 @@ namespace exPlugin
             // 起動時実行
             configManager = new ConfigManager();
             configManager.LoadConfig(Name);
+            configManager.LoadCSV(Name);
+
+            //自分自身の実行ファイルのパスを取得する
+            //string appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            //実行ファイルがあるフォルダパスを取得する
+            //string appPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            //YukarinetteConsoleMessage.Instance.WriteMessage(appPath);
 
             exManager = new exManager();
         }

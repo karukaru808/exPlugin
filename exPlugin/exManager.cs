@@ -34,7 +34,6 @@ namespace exPlugin
 
             //デバッグ用文章
             YukarinetteConsoleMessage.Instance.WriteMessage(csvPath);
-            YukarinetteConsoleMessage.Instance.WriteMessage(text);
 
             //止めてから再生（いらない？）
             //StopSound();
