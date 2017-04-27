@@ -23,7 +23,7 @@ namespace exPlugin
             // 起動時実行
             configManager = new ConfigManager();
             configManager.LoadConfig(Name);
-            configManager.LoadCSV(Name);
+            configManager.CheckCSV(Name);
 
             //自分自身の実行ファイルのパスを取得する
             //string appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
@@ -50,7 +50,8 @@ namespace exPlugin
         {
             // 音声認識開始時実行
             //音声認識スタートボタン押したときに呼び出される
-            exManager.Create(configManager.configData.csvPath);
+            configManager.LoadCSV(Name);
+            exManager.Create();
             //YukarinetteConsoleMessage.Instance.WriteMessage("1");
         }
 

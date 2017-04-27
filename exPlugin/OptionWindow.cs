@@ -15,7 +15,7 @@ namespace exPlugin
             Owner = Application.Current.MainWindow;
 
             // 現在の設定を設定欄に反映
-            CSVPathTextBox.Text = manager.configData.csvPath;
+            CSVPathTextBox.Text = ConfigData.csvPath;
             VOICELOIDSelected.SelectedIndex = manager.configData.VOICELOIDIndex;
         }
 
@@ -34,9 +34,9 @@ namespace exPlugin
         private void Save(ConfigManager manager, string pluginName)
         {
             // 設定欄の内容を設定に保存
-            manager.configData.csvPath = CSVPathTextBox.Text;
+            ConfigData.csvPath = CSVPathTextBox.Text;
             manager.configData.VOICELOIDIndex = VOICELOIDSelected.SelectedIndex;
-            YukarinetteConsoleMessage.Instance.WriteMessage("Index : " + VOICELOIDSelected.SelectedIndex.ToString());
+            //YukarinetteConsoleMessage.Instance.WriteMessage("Index : " + VOICELOIDSelected.SelectedIndex.ToString());
 
             manager.Save(pluginName);
         }
@@ -60,7 +60,7 @@ namespace exPlugin
             {
                 FileName = "",
                 InitialDirectory = initialDirectory,
-                Filter = "wav (*.wav)|*.wav",       //ここをcsvにするとwavのパスを直接入力でも動かない
+                Filter = "CSV (*.csv)|*.csv",       //ここをcsvにするとwavのパスを直接入力でも動かない
                 Title = "CSVファイル を指定してください。"
             };
             YukarinetteLogger.Instance.Info("dialog open.");

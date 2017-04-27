@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
@@ -20,29 +21,29 @@ namespace exPlugin
             set;
         }
 
-        string csvData
+        public static string fileName
         {
             get;
-            set;
+            private set;
         }
 
-        public string csvPath
+        public static List<List<string>> csvData = new List<List<string>>();
+        /*
+        public static List<List<string>> csvData
         {
-            get;
-            set;
+            get ;
+            set ;
         }
+        */
 
         public ConfigManager()
         {
             configData = null;
 
-            var fileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
+            fileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var confpath = Path.Combine(YukarinetteCommon.AppSettingFolder, "plugins");
-            var dllpath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            exPlugin ex = new exPlugin();
 
             configPath = Path.Combine(confpath, fileName + ".config");
-            csvPath = Path.Combine(dllpath, ex.Name + ".csv");
         }
 
         // 設定ファイル読み込み
@@ -76,46 +77,58 @@ namespace exPlugin
             }
         }
 
-        // CSVファイル読み込み
-        public void LoadCSV(string pluginName)
+        // CSVファイルが無かったら作成
+        public void CheckCSV(string pluginName)
         {
-            if (!File.Exists(csvPath))
+            if (!File.Exists(ConfigData.csvPath))
             {
-                using (FileStream fs = File.Create(csvPath))
+                using (FileStream fs = File.Create(ConfigData.csvPath))
                 {
+                    // UTF-8でエンコードして書き込むためのStreamWriterを作成
+                    using (StreamWriter streamWrite = new StreamWriter(fs, Encoding.GetEncoding("UTF-8")))
+                    {
+                        //ヘッダを書き込む
+                        streamWrite.WriteLine("キーワード,ファイルパス（フルパス）\r\n");
+                    }
+
                     // ファイルストリームを閉じて、変更を確定させる
                     // 呼ばなくても using を抜けた時点で Dispose メソッドが呼び出される
                     fs.Close();
                 }
+                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + " のCSVファイルが見つかりませんでした。新規作成します。");
                 return;
             }
+        }
 
-            //設定ファイル読み込みにトライ
+        // CSVファイル読み込み
+        public void LoadCSV(string pluginName)
+        {
+            //CSVファイル読み込みにトライ
             try
             {
-                using (var fileStream = new FileStream(csvPath, FileMode.Open))
+                using (var fileStream = new FileStream(ConfigData.csvPath, FileMode.Open))
                 {
-                    using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
+                    using (var streamReader = new StreamReader(fileStream, Encoding.GetEncoding("UTF-8")))
                     {
-                        while (streamReader.EndOfStream == false)
+                        streamReader.ReadLine();   //最初の一行分(表のヘッダ部分)を読み飛ばす
+                        while (!streamReader.EndOfStream)
                         {
-                            //1行ずつ読み込んで区切り文字で分離
-                            string line = streamReader.ReadLine();
-                            string[] fields = line.Split(',');
-
-                            //その内容を表示
-                            for (int i = 0; i < fields.Length; i++)
+                            List<string> addData = new List<string>();
+                            string line = streamReader.ReadLine();   //一行ずつ読み込む
+                            string[] splitData = line.Split(',');   //','区切りで分割したものを配列に追加
+                            for (int i = 0; i < splitData.Length; i++)
                             {
-                                YukarinetteConsoleMessage.Instance.WriteMessage(fields[i]);
+                                addData.Add(splitData[i]);   //追加用のList<string>の作成
                             }
-
+                            //addData.Add("\n");
+                            csvData.Add(addData);   //List<List<string>>のList<string>部分の追加
                         }
                     }
                 }
             }
             catch   //失敗したら新しくファイルを作る
             {
-                using (FileStream fs = File.Create(csvPath))
+                using (FileStream fs = File.Create(ConfigData.csvPath))
                 {
                     // ファイルストリームを閉じて、変更を確定させる
                     // 呼ばなくても using を抜けた時点で Dispose メソッドが呼び出される

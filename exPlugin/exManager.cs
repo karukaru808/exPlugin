@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Media;
 using Yukarinette;
 
@@ -7,13 +8,9 @@ namespace exPlugin
     // プラグインごとの動作
     public class exManager
     {
-        static string csvPath;
-
-        public void Create(string PathString)
+        public void Create()
         {
             // 音声認識開始時の初期化とか
-            //CSVファイルのPathを取得する
-            csvPath = PathString;
         }
 
         public void Dispose()
@@ -31,21 +28,38 @@ namespace exPlugin
             ////////////////////////////////////////////////////////////////////////////
             //本来はここで登録したキーワードと認識した文章が合致しているかチェックする//
             ////////////////////////////////////////////////////////////////////////////
+            int index = 0;
+            //csvDataは2次元Listなので、foreachで全ての要素を1次元にして比較する
+            foreach (List<string> list in ConfigManager.csvData)
+            {
+                //もしlistとtextが一致したら離脱（キーワードと喋った内容が一致したら）
+                if (list[0] == text)
+                {
+                    //止めてから再生（いらない？）
+                    //StopSound();
+                    //もし喋った内容とキーワードが一致したらWAVE再生
+                    PlaySound(ConfigManager.csvData[index][1]);
 
-            //デバッグ用文章
-            YukarinetteConsoleMessage.Instance.WriteMessage(csvPath);
-
-            //止めてから再生（いらない？）
-            //StopSound();
-            PlaySound();
+                    //foreach離脱
+                    break;
+                }
+                else
+                {
+                    index++;
+                    continue;
+                }
+            }
         }
 
         //以下WAVEファイルを再生するためのプログラム
         //再生用
-        private void PlaySound()
+        private void PlaySound(string WAVEPath)
         {
+            //デバッグ用文章
+            YukarinetteConsoleMessage.Instance.WriteMessage(WAVEPath);
+
             //WAVEファイルの準備
-            SoundPlayer player = new SoundPlayer(@csvPath);
+            SoundPlayer player = new SoundPlayer(@WAVEPath);
 
             //WAVEファイルが存在するかチェック
             try

@@ -1,15 +1,18 @@
 ﻿using System.IO;
+using System.Reflection;
+using Yukarinette;
 
 namespace exPlugin
 {
     public class ConfigData
     {
         // 設定項目
-        public string csvPath
+        public static string csvPath
         {
             get;
             set;
         }
+
         public int VOICELOIDIndex
         {
             get;
@@ -19,8 +22,8 @@ namespace exPlugin
         public ConfigData()
         {
             // 設定項目初期化
-            ConfigManager configManager = new ConfigManager();
-            csvPath = configManager.csvPath;
+            var dllpath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            csvPath = Path.Combine(dllpath, ConfigManager.fileName + ".csv");
             VOICELOIDIndex = 0;
         }
         
