@@ -10,6 +10,9 @@
 
                 <ComboBox Name="VOICELOIDSelected" Margin="10,5,10,0">
                     <ComboBoxItem Content="結月ゆかり/結月ゆかりEX" />
+                    <ComboBoxItem Content="弦巻マキ/弦巻マキEX" />
+                    <ComboBoxItem Content="東北ずん子/東北ずん子EX" />
+                    <ComboBoxItem Content="京町セイカEX" />
                     <ComboBoxItem Content="東北きりたん" />
                 </ComboBox>
                 

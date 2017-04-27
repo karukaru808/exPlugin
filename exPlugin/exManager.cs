@@ -23,11 +23,7 @@ namespace exPlugin
             // 音声認識時のメイン処理
             // textに認識した本文が入っている
 
-            //ここから exPlugin
-
-            ////////////////////////////////////////////////////////////////////////////
-            //本来はここで登録したキーワードと認識した文章が合致しているかチェックする//
-            ////////////////////////////////////////////////////////////////////////////
+            //キーワードと発話内容の比較チェック
             int index = 0;
             //csvDataは2次元Listなので、foreachで全ての要素を1次元にして比較する
             foreach (List<string> list in ConfigManager.csvData)
@@ -49,6 +45,8 @@ namespace exPlugin
                     continue;
                 }
             }
+
+
         }
 
         //以下WAVEファイルを再生するためのプログラム
@@ -90,5 +88,31 @@ namespace exPlugin
         }
         */
 
+        //VOICEROIDを停止する
+        public virtual void Dispose()
+        {
+            YukarinetteLogger.Instance.Debug("start.");
+            if (this.mMonitoringTask != null)
+            {
+                this.mMonitoring = false;
+                this.mMonitoringTask.Wait();
+                this.mMonitoringTask = null;
+            }
+            if (this.mVoiceroidProcess != null)
+            {
+                try
+                {
+                    this.mVoiceroidProcess.Kill();
+                }
+                catch (Exception message)
+                {
+                    YukarinetteLogger.Instance.Error(message);
+                }
+                this.mVoiceroidProcess.Dispose();
+                this.mVoiceroidProcess = null;
+            }
+            YukarinetteLogger.Instance.Info("dispose ok.");
+            YukarinetteLogger.Instance.Debug("end.");
+        }
     }
 }
