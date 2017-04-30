@@ -7,24 +7,41 @@ namespace exPlugin
     public class ConfigData
     {
         // 設定項目
-        public static string csvPath
+        public static string csvPath;
+        public static int Index;
+
+        public string Path
         {
-            get;
-            set;
+            get
+            {
+                return csvPath;
+            }
+
+            set
+            {
+                csvPath = value;
+            }
         }
 
-        public int VOICELOIDIndex
+        public int VOICEROIDIndex
         {
-            get;
-            set;
+            get
+            {
+                return Index;
+            }
+
+            set
+            {
+                Index = value;
+            }
         }
 
         public ConfigData()
         {
             // 設定項目初期化
-            var dllpath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            csvPath = Path.Combine(dllpath, ConfigManager.fileName + ".csv");
-            VOICELOIDIndex = 0;
+            var dllpath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            csvPath = System.IO.Path.Combine(dllpath, ConfigManager.fileName + ".csv");
+            Index = 0;
         }
         
 

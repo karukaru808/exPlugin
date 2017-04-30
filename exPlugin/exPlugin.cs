@@ -24,6 +24,7 @@ namespace exPlugin
             configManager = new ConfigManager();
             configManager.LoadConfig(Name);
             configManager.CheckCSV(Name);
+            configManager.LoadCSV(Name);
 
             //自分自身の実行ファイルのパスを取得する
             //string appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
@@ -52,7 +53,7 @@ namespace exPlugin
             //音声認識スタートボタン押したときに呼び出される
             configManager.LoadCSV(Name);
             exManager.Create();
-            //YukarinetteConsoleMessage.Instance.WriteMessage("1");
+            YukarinetteConsoleMessage.Instance.WriteMessage("Create");
         }
 
         public override void SpeechRecognitionStop()
@@ -60,7 +61,7 @@ namespace exPlugin
             // 音声認識終了時実行
             //音声認識終了ボタン押したときに呼び出される
             exManager.Dispose();
-            //YukarinetteConsoleMessage.Instance.WriteMessage("2");
+            YukarinetteConsoleMessage.Instance.WriteMessage("Dispose");
         }
 
         public override void Speech(string text)

@@ -8,7 +8,7 @@ namespace exPlugin
 {
     public partial class OptionWindow
     {
-        private OptionWindow(ConfigManager manager)
+        private OptionWindow()
         {
             InitializeComponent();
 
@@ -16,13 +16,13 @@ namespace exPlugin
 
             // 現在の設定を設定欄に反映
             CSVPathTextBox.Text = ConfigData.csvPath;
-            VOICELOIDSelected.SelectedIndex = manager.configData.VOICELOIDIndex;
+            VOICELOIDSelected.SelectedIndex = ConfigData.Index;
         }
 
         // 設定画面表示時実行
         public static void Show(ConfigManager manager, string pluginName)
         {
-            var optionWindow = new OptionWindow(manager);
+            var optionWindow = new OptionWindow();
 
             if (optionWindow.ShowDialog().Value)
             {
@@ -35,7 +35,7 @@ namespace exPlugin
         {
             // 設定欄の内容を設定に保存
             ConfigData.csvPath = CSVPathTextBox.Text;
-            manager.configData.VOICELOIDIndex = VOICELOIDSelected.SelectedIndex;
+            ConfigData.Index = VOICELOIDSelected.SelectedIndex;
             //YukarinetteConsoleMessage.Instance.WriteMessage("Index : " + VOICELOIDSelected.SelectedIndex.ToString());
 
             manager.Save(pluginName);

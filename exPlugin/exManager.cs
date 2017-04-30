@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Media;
+using System.Runtime.InteropServices;
+using System.Timers;
+using System.Windows.Automation;
 using Yukarinette;
 
 namespace exPlugin
@@ -8,14 +12,89 @@ namespace exPlugin
     // プラグインごとの動作
     public class exManager
     {
+        //VOICEROIDをコントロールするのに必要
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+        //対応するVOICEROIDを列挙 
+        string[] voiceroidNames = {
+                                          "結月ゆかり",
+                                          "民安ともえ",
+                                          "東北ずん子",
+                                          "京町セイカ",
+                                          "東北きりたん"
+                                      };
+
+        //VOICEROIDハンドル保持用変数
+        AutomationElement ae = null;
+
+        //停止ボタンのハンドル保持用変数
+        IntPtr stpControl = IntPtr.Zero;
+
         public void Create()
         {
             // 音声認識開始時の初期化とか
+
+            //VOICEROID起動まで待つ
+            time(1000);
+
+            //VOICEROID.exeの起動チェック
+            Process[] apps = Process.GetProcessesByName("VOICEROID");
+
+            //VOICEROID.exeが見つかった場合
+            if (!(apps.Length < 1))
+            {
+                //VOICEROID.exeのプロセス取得
+                //複数VOICEROID.exeが見つかった場合に備えて、正しいVOICEROIDの判別
+                foreach (Process app in apps)
+                {
+                    //1個ずつハンドル取得して確認していく
+                    AutomationElement rootHandle = AutomationElement.FromHandle(app.MainWindowHandle);
+                    foreach (string voiceroidName in voiceroidNames)
+                    {
+                        //現在ハンドルを取得しているVOICEROIDと目的のVOICEROIDが一致しているか確認
+                        string name = rootHandle.Current.Name;
+                        if (name.StartsWith("VOICEROID＋ " + voiceroidNames[ConfigData.Index]))
+                        {
+                            //一致していたら正式ハンドルとして登録
+                            ae = rootHandle;
+                        }
+                    }
+                }
+            }
+            //VOICEROID.exeが見つからなかった場合
+            else
+            {
+                YukarinetteConsoleMessage.Instance.WriteMessage("VOICEROID＋ " + voiceroidNames[ConfigData.Index] + " が見つかりませんでした。");
+                return;
+            }
+            
+            //テキストボックス、再生ボタン、停止ボタンのGUIコントロール取得
+            AutomationElement txtForm = ae.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "txtMain", PropertyConditionFlags.IgnoreCase));
+            IntPtr txtFormHandle = IntPtr.Zero;
+            try
+            {
+                txtFormHandle = (IntPtr)txtForm.Current.NativeWindowHandle;
+            }
+            catch (NullReferenceException e)
+            {
+                //ハンドルが取得できなかった場合、ウィンドウが見つかっていない
+                Console.WriteLine(voiceroidNames[ConfigData.Index] + "のウィンドウが取得できませんでした. 最小化されているか, ほかのプロセスによってブロックされています.");
+                return;
+            }
+            
+
+            //停止ボタンのハンドルを取得
+            AutomationElement btnStop = ae.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "btnStop", PropertyConditionFlags.IgnoreCase));
+            stpControl = (IntPtr)btnStop.Current.NativeWindowHandle;
         }
 
         public void Dispose()
         {
             // 音声認識終了時のリソース破棄とか
+
+            //停止ボタンのハンドル変数初期化
+            stpControl = IntPtr.Zero;
         }
 
         public void Speech(string text)
@@ -31,8 +110,19 @@ namespace exPlugin
                 //もしlistとtextが一致したら離脱（キーワードと喋った内容が一致したら）
                 if (list[0] == text)
                 {
-                    //止めてから再生（いらない？）
+                    //VOICEROIDを停止
+                    if (stpControl != IntPtr.Zero)
+                    {
+                        //不安定だからちょっとだけ待つ
+                        time(10);
+                        SendMessage(stpControl, 245u, IntPtr.Zero, IntPtr.Zero);
+                        YukarinetteConsoleMessage.Instance.WriteMessage("STOP");
+                    }
+
+
+                    //WAVEを止めてから再生（いらない？）
                     //StopSound();
+
                     //もし喋った内容とキーワードが一致したらWAVE再生
                     PlaySound(ConfigManager.csvData[index][1]);
 
@@ -45,8 +135,6 @@ namespace exPlugin
                     continue;
                 }
             }
-
-
         }
 
         //以下WAVEファイルを再生するためのプログラム
@@ -88,31 +176,21 @@ namespace exPlugin
         }
         */
 
-        //VOICEROIDを停止する
-        public virtual void Dispose()
+        static void time(int interval)
         {
-            YukarinetteLogger.Instance.Debug("start.");
-            if (this.mMonitoringTask != null)
-            {
-                this.mMonitoring = false;
-                this.mMonitoringTask.Wait();
-                this.mMonitoringTask = null;
-            }
-            if (this.mVoiceroidProcess != null)
-            {
-                try
-                {
-                    this.mVoiceroidProcess.Kill();
-                }
-                catch (Exception message)
-                {
-                    YukarinetteLogger.Instance.Error(message);
-                }
-                this.mVoiceroidProcess.Dispose();
-                this.mVoiceroidProcess = null;
-            }
-            YukarinetteLogger.Instance.Info("dispose ok.");
-            YukarinetteLogger.Instance.Debug("end.");
+            // タイマーの生成
+            var timer = new Timer();
+            timer.Elapsed += new ElapsedEventHandler(func);
+            timer.Interval = interval;
+
+            // タイマーを開始
+            timer.Start();
+
+            // タイマーを停止
+            timer.Stop();
         }
+
+        static void func(object sender, ElapsedEventArgs e) { }
+
     }
 }
