@@ -20,25 +20,24 @@ namespace exPlugin
         }
 
         // 設定画面表示時実行
-        public static void Show(ConfigManager manager, string pluginName)
+        public static void Show(ConfigManager manager)
         {
             var optionWindow = new OptionWindow();
 
             if (optionWindow.ShowDialog().Value)
             {
-                optionWindow.Save(manager, pluginName);
+                optionWindow.Save(manager);
             }
         }
 
         // 設定画面閉止時実行
-        private void Save(ConfigManager manager, string pluginName)
+        private void Save(ConfigManager manager)
         {
             // 設定欄の内容を設定に保存
             ConfigData.csvPath = CSVPathTextBox.Text;
             ConfigData.Index = VOICELOIDSelected.SelectedIndex;
-            //YukarinetteConsoleMessage.Instance.WriteMessage("Index : " + VOICELOIDSelected.SelectedIndex.ToString());
 
-            manager.Save(pluginName);
+            manager.Save();
         }
 
         //OKボタンクリック時動作
@@ -50,7 +49,6 @@ namespace exPlugin
         //参照ボタンクリック時動作
         private void CSVPathButton_Click(object sender, RoutedEventArgs e)
         {
-            YukarinetteLogger.Instance.Debug("start.");
             string initialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
             if (0 < this.CSVPathTextBox.Text.Length && File.Exists(this.CSVPathTextBox.Text))
             {
@@ -60,16 +58,13 @@ namespace exPlugin
             {
                 FileName = "",
                 InitialDirectory = initialDirectory,
-                Filter = "CSV (*.csv)|*.csv",       //ここをcsvにするとwavのパスを直接入力でも動かない
+                Filter = "CSV (*.csv)|*.csv",
                 Title = "CSVファイル を指定してください。"
             };
-            YukarinetteLogger.Instance.Info("dialog open.");
             if (openFileDialog.ShowDialog().Value)
             {
-                YukarinetteLogger.Instance.Info("dialog ok.");
                 this.CSVPathTextBox.Text = openFileDialog.FileName;
             }
-            YukarinetteLogger.Instance.Debug("end.");
         }
         
     }

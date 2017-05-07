@@ -28,16 +28,13 @@ namespace exPlugin
         }
 
         public static List<List<string>> csvData = new List<List<string>>();
-        /*
-        public static List<List<string>> csvData
-        {
-            get ;
-            set ;
-        }
-        */
 
-        public ConfigManager()
+        private string pluginName;
+
+        public ConfigManager(string Name)
         {
+            pluginName = Name + " : ";
+
             configData = null;
 
             fileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
@@ -47,7 +44,7 @@ namespace exPlugin
         }
 
         // 設定ファイル読み込み
-        public void LoadConfig(string pluginName)
+        public void LoadConfig()
         {
             if (!File.Exists(configPath))
             {
@@ -73,12 +70,12 @@ namespace exPlugin
             {
                 CreateNewSetting();
 
-                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + " の設定ファイルが読み取れませんでした。初期値で動作します。");
+                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルが読み取れませんでした。初期値で動作します。");
             }
         }
 
         // CSVファイルが無かったら作成
-        public void CheckCSV(string pluginName)
+        public void CheckCSV()
         {
             if (!File.Exists(ConfigData.csvPath))
             {
@@ -88,21 +85,24 @@ namespace exPlugin
                     using (StreamWriter streamWrite = new StreamWriter(fs, Encoding.GetEncoding("UTF-8")))
                     {
                         //ヘッダを書き込む
-                        streamWrite.WriteLine("キーワード,ファイルパス（フルパス）\r\n");
+                        streamWrite.WriteLine("キーワード,ファイルパス（フルパス）\r\n,");
                     }
 
                     // ファイルストリームを閉じて、変更を確定させる
                     // 呼ばなくても using を抜けた時点で Dispose メソッドが呼び出される
                     fs.Close();
                 }
-                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + " のCSVファイルが見つかりませんでした。新規作成します。");
+                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが見つかりませんでした。新規作成します。");
                 return;
             }
         }
 
         // CSVファイル読み込み
-        public void LoadCSV(string pluginName)
+        public void LoadCSV()
         {
+            //csvDataqを初期化
+            csvData = new List<List<string>>();
+
             //CSVファイル読み込みにトライ
             try
             {
@@ -135,12 +135,12 @@ namespace exPlugin
                     fs.Close();
                 }
 
-                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + " のCSVファイルが読み取れませんでした。初期値で動作します。");
+                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが読み取れませんでした。初期値で動作します。");
             }
         }
 
         // 設定ファイル保存
-        public void Save(string pluginName)
+        public void Save()
         {
             if (configData == null)
             {
@@ -166,7 +166,7 @@ namespace exPlugin
             }
             catch
             {
-                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + " の設定ファイルの保存に失敗しました。");
+                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルの保存に失敗しました。");
             }
         }
 

@@ -21,10 +21,10 @@ namespace exPlugin
         public override void Loaded()
         {
             // 起動時実行
-            configManager = new ConfigManager();
-            configManager.LoadConfig(Name);
-            configManager.CheckCSV(Name);
-            configManager.LoadCSV(Name);
+            configManager = new ConfigManager(Name);
+            configManager.LoadConfig();
+            configManager.CheckCSV();
+            configManager.LoadCSV();
 
             //自分自身の実行ファイルのパスを取得する
             //string appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
@@ -38,22 +38,22 @@ namespace exPlugin
         public override void Closed()
         {
             // 終了時実行
-            configManager.Save(Name);
+            configManager.Save();
         }
 
         public override void Setting()
         {
             // 設定ボタン押下時実行
-            OptionWindow.Show(configManager, Name);
+            OptionWindow.Show(configManager);
         }
 
         public override void SpeechRecognitionStart()
         {
             // 音声認識開始時実行
             //音声認識スタートボタン押したときに呼び出される
-            configManager.LoadCSV(Name);
-            exManager.Create();
-            YukarinetteConsoleMessage.Instance.WriteMessage("Create");
+            configManager.LoadCSV();
+            exManager.Create(Name);
+            //YukarinetteConsoleMessage.Instance.WriteMessage("Create");
         }
 
         public override void SpeechRecognitionStop()
@@ -61,7 +61,7 @@ namespace exPlugin
             // 音声認識終了時実行
             //音声認識終了ボタン押したときに呼び出される
             exManager.Dispose();
-            YukarinetteConsoleMessage.Instance.WriteMessage("Dispose");
+            //YukarinetteConsoleMessage.Instance.WriteMessage("Dispose");
         }
 
         public override void Speech(string text)

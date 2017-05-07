@@ -6,7 +6,7 @@
                 <!-- 設定欄 -->
 
                 <!-- コンボボックスでVOICELOID選択 -->
-                <TextBlock Margin="5,5,5,0">使用するVOICELOIDを選択してください。正しく設定しないとexVOICE再生中に喋りだします。</TextBlock>
+                <TextBlock Margin="5,5,5,0">使用するVOICELOIDを選択してください。正しく設定しないとexVOICEが再生されません。</TextBlock>
 
                 <ComboBox Name="VOICELOIDSelected" Margin="10,5,10,0">
                     <ComboBoxItem Content="結月ゆかり/結月ゆかりEX" />
