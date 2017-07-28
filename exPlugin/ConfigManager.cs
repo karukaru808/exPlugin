@@ -15,7 +15,7 @@ namespace exPlugin
             protected set;
         }
 
-        string configPath
+        public static string configPath
         {
             get;
             set;
@@ -38,9 +38,8 @@ namespace exPlugin
             configData = null;
 
             fileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
-            var confpath = Path.Combine(YukarinetteCommon.AppSettingFolder, "plugins");
-
-            configPath = Path.Combine(confpath, fileName + ".config");
+            // var confpath = Path.Combine(YukarinetteCommon.AppSettingFolder, "Plugins");
+            configPath = Path.Combine(Path.Combine(YukarinetteCommon.AppSettingFolder, "Plugins"), fileName + ".config");
         }
 
         // 設定ファイル読み込み
@@ -53,7 +52,7 @@ namespace exPlugin
                 return;
             }
 
-            //設定ファイル読み込みにトライ
+            // 設定ファイル読み込みにトライ
             try
             {
                 using (var fileStream = new FileStream(configPath, FileMode.Open))
@@ -66,7 +65,7 @@ namespace exPlugin
                     }
                 }
             }
-            catch   //失敗したら新しくファイルを作る
+            catch   // 失敗したら新しくファイルを作る
             {
                 CreateNewSetting();
 
@@ -76,7 +75,7 @@ namespace exPlugin
 
         // CSVファイルが無かったら作成
         public void CheckCSV()
-        {
+        {            
             if (!File.Exists(ConfigData.csvPath))
             {
                 using (FileStream fs = File.Create(ConfigData.csvPath))

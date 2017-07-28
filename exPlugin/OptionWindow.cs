@@ -2,7 +2,6 @@
 using System;
 using System.IO;
 using System.Windows;
-using Yukarinette;
 
 namespace exPlugin
 {
