@@ -96,7 +96,9 @@ namespace exPlugin
         {
             // 音声認識時のメイン処理
             // textに認識した本文が入っている
-
+            // ゆかりねっとVer0.3.2 より textの最後に「。」が挿入されるようになった
+            // YukarinetteConsoleMessage.Instance.WriteMessage(text);
+            
             //VOICEROIDの各種ハンドルを取得できていたら実行
             if (stpControl != IntPtr.Zero && btnSaveWave != null)
             {
@@ -106,7 +108,8 @@ namespace exPlugin
                 foreach (List<string> list in ConfigManager.csvData)
                 {
                     //もしlistとtextが一致したら離脱（キーワードと喋った内容が一致したら）
-                    if (list[0] == text)
+                    // 末尾に「。」があるキーワードと一致 || 末尾に「。」がないキーワードと一致　のいずれかでTrueになったら
+                    if (list[0] == text || list[0] == text.Remove(text.Length - 1))
                     {
                         //音声保存ボタンがFalseになるまでループ（最長1秒）
                         Stopwatch stopwatch = new Stopwatch();
