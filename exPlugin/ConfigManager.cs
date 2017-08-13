@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -62,6 +63,14 @@ namespace exPlugin
                         var xmlSerializer = new XmlSerializer(typeof(ConfigData));
 
                         configData = (ConfigData)xmlSerializer.Deserialize(streamReader);
+                        
+                        //もし設定ファイルのバージョンとプラグインのバージョンが不一致ならば
+                        if (configData.PluginVersion != (Assembly.GetExecutingAssembly().GetName().Version).ToString())
+                        {
+                            //新しい設定ファイルを作成する
+                            CreateNewSetting();
+                            YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルのバージョンが違います。初期値で動作します。");
+                        }
                     }
                 }
             }
@@ -165,6 +174,7 @@ namespace exPlugin
             }
             catch
             {
+                YukarinetteLogger.Instance.Debug(pluginName + "設定ファイルの保存に失敗しました。");
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルの保存に失敗しました。");
             }
         }
