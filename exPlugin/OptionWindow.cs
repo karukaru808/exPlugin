@@ -64,7 +64,7 @@ namespace exPlugin
             };
             if (openFileDialog.ShowDialog().Value)
             {
-                this.CSVPathTextBox.Text = openFileDialog.FileName;
+                CSVPathTextBox.Text = openFileDialog.FileName;
             }
         }
         

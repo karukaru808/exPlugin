@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
+using Yukarinette;
 
 namespace exPlugin
 {
@@ -23,7 +25,7 @@ namespace exPlugin
             }
         }
 
-        public string Path
+        public string CsvPath
         {
             get
             {
@@ -57,10 +59,7 @@ namespace exPlugin
             version = (Assembly.GetExecutingAssembly().GetName().Version).ToString();
 
             //設定ファイルの位置情報
-            var dllpath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            // dllPathはアクセス権限がないためCSVファイルの場所を一時的に変更
-            // csvPath = System.IO.Path.Combine(dllpath, ConfigManager.fileName + ".csv");
-            csvPath = ConfigManager.configPath + ".csv";
+            csvPath = Path.Combine(Path.Combine(YukarinetteCommon.AppSettingFolder, "Plugins"), ConfigManager.fileName + ".csv");
 
             //使用VOICEROID情報
             Index = 0;

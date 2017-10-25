@@ -25,21 +25,20 @@ namespace exPlugin
         public static string fileName
         {
             get;
-            private set;
+            set;
         }
 
         public static List<List<string>> csvData = new List<List<string>>();
 
         private string pluginName;
 
-        public ConfigManager(string Name)
+        public ConfigManager(string pName)
         {
-            pluginName = Name + " : ";
+            pluginName = pName + " : ";
 
             configData = null;
 
             fileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
-            // var confpath = Path.Combine(YukarinetteCommon.AppSettingFolder, "Plugins");
             configPath = Path.Combine(Path.Combine(YukarinetteCommon.AppSettingFolder, "Plugins"), fileName + ".config");
         }
 
@@ -69,6 +68,7 @@ namespace exPlugin
                         {
                             //新しい設定ファイルを作成する
                             CreateNewSetting();
+                            YukarinetteLogger.Instance.Info("設定ファイル バージョン相違");
                             YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルのバージョンが違います。初期値で動作します。");
                         }
                     }
@@ -77,7 +77,7 @@ namespace exPlugin
             catch   // 失敗したら新しくファイルを作る
             {
                 CreateNewSetting();
-
+                YukarinetteLogger.Instance.Info("設定ファイル 読み取り不可");
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルが読み取れませんでした。初期値で動作します。");
             }
         }
@@ -100,6 +100,7 @@ namespace exPlugin
                     // 呼ばなくても using を抜けた時点で Dispose メソッドが呼び出される
                     fs.Close();
                 }
+                YukarinetteLogger.Instance.Info("設定ファイル 未検出");
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが見つかりませんでした。新規作成します。");
                 return;
             }
@@ -142,7 +143,7 @@ namespace exPlugin
                     // 呼ばなくても using を抜けた時点で Dispose メソッドが呼び出される
                     fs.Close();
                 }
-
+                YukarinetteLogger.Instance.Info("CSVファイル 読み取り不可");
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが読み取れませんでした。初期値で動作します。");
             }
         }
@@ -174,7 +175,7 @@ namespace exPlugin
             }
             catch
             {
-                YukarinetteLogger.Instance.Debug(pluginName + "設定ファイルの保存に失敗しました。");
+                YukarinetteLogger.Instance.Info("設定ファイル 保存失敗");
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルの保存に失敗しました。");
             }
         }

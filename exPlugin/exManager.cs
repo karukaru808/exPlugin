@@ -18,11 +18,11 @@ namespace exPlugin
 
         //対応するVOICEROIDを列挙 
         string[] voiceroidNames = {
-                                          "結月ゆかり",
-                                          "民安ともえ",
-                                          "東北ずん子",
-                                          "京町セイカ",
-                                          "東北きりたん"
+                                          "VOICEROID＋ 結月ゆかり",
+                                          "VOICEROID＋ 民安ともえ",
+                                          "VOICEROID＋ 東北ずん子",
+                                          "VOICEROID＋ 京町セイカ",
+                                          "VOICEROID＋ 東北きりたん"
                                       };
 
         //VOICEROIDハンドル保持用変数
@@ -34,11 +34,14 @@ namespace exPlugin
         //音声保存ボタンのハンドル保持用変数
         AutomationElement btnSaveWave = null;
 
-        public void Create(string pluginName)
+        //プラグイン名保存用変数
+        private string pluginName;
+
+        public void Create(string pName)
         {
             // 音声認識開始時の初期化とか
 
-            pluginName = pluginName + " : ";
+            pluginName = pName + " : ";
 
             //VOICEROIDのハンドル取得まで最長15秒待つ
             Stopwatch stopwatch = new Stopwatch();
@@ -50,14 +53,15 @@ namespace exPlugin
                 if (15000L <= stopwatch.ElapsedMilliseconds)
                 {
                     //VOICEROID.exeが見つからなかった場合
-                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "VOICEROID＋ " + voiceroidNames[ConfigData.Index] + " が起動していません。");
-                    //YukarinetteLogger.Instance.Error("voiceroid process wait error.");
+                    YukarinetteLogger.Instance.Error("15秒待機 タイムアウト");
+                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + voiceroidNames[ConfigData.Index] + " が起動していません。");
                     stopwatch.Stop();
-                    throw new TimeoutException(pluginName + "Voiceroid process has been waiting 15 seconds, start-up was not completed.");
+                    //throw new TimeoutException(pluginName + "Voiceroid process has been waiting 15 seconds, start-up was not completed.");
                 }
             }
             stopwatch.Stop();
 
+            
 
             //ハンドルが登録されていたら
             if (rootHandle != null)
@@ -68,12 +72,16 @@ namespace exPlugin
                     AutomationElement btnStop = rootHandle.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "btnStop", PropertyConditionFlags.IgnoreCase));
                     stpControl = (IntPtr)btnStop.Current.NativeWindowHandle;
                     btnSaveWave = rootHandle.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "btnSaveWave", PropertyConditionFlags.IgnoreCase));
+                    YukarinetteLogger.Instance.Info("プラグイン起動 成功");
+                    YukarinetteLogger.Instance.Info("コントロール中VOICEROID : " + voiceroidNames[ConfigData.Index]);
                     YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "正常起動しました。");
+                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "選択したVOICEROID : " + voiceroidNames[ConfigData.Index]);
                 }
                 catch
                 {
                     //ハンドルが取得できなかった場合、ウィンドウが見つかっていない
-                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "VOICEROID＋ " + voiceroidNames[ConfigData.Index] + "のコントロールを取得できませんでした。");
+                    YukarinetteLogger.Instance.Error(voiceroidNames[ConfigData.Index] + " のコントロール取得 失敗");
+                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + voiceroidNames[ConfigData.Index] + "のコントロールを取得できませんでした。");
                     return;
                 }
             }
@@ -97,7 +105,7 @@ namespace exPlugin
             // 音声認識時のメイン処理
             // textに認識した本文が入っている
             // ゆかりねっとVer0.3.2 より textの最後に「。」が挿入されるようになった
-            // YukarinetteConsoleMessage.Instance.WriteMessage(text);
+            // YukarinetteConsoleMessage.Instance.WriteMessage(text.Remove(text.Length - 1));
             
             //VOICEROIDの各種ハンドルを取得できていたら実行
             if (stpControl != IntPtr.Zero && btnSaveWave != null)
@@ -124,12 +132,14 @@ namespace exPlugin
                                 //WAVE再生
                                 PlaySound(ConfigManager.csvData[index][1]);
                                 stopwatch.Stop();
+                                YukarinetteLogger.Instance.Info("音声再生 成功");
                                 //whileを離脱
                                 break;
                             }
 
                             if (1000L <= stopwatch.ElapsedMilliseconds)
                             {
+                                YukarinetteLogger.Instance.Info("音声再生 タイムアウト");
                                 stopwatch.Stop();
                                 break;
                             }
@@ -171,7 +181,8 @@ namespace exPlugin
             catch (Exception ex)
             {
                 //WAVEファイルが見つからなかったらエラー文章を出力
-                YukarinetteConsoleMessage.Instance.WriteMessage(ex.Message);
+                YukarinetteLogger.Instance.Info(ex.Message);
+                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + ex.Message);
             }
 
             //player.Play();   //再生終了前に次のファイルを再生する（ぶつ切りされる）
@@ -203,14 +214,14 @@ namespace exPlugin
                         return;
                     }
 
-                    foreach (string voiceroidName in voiceroidNames)
+                    //現在ハンドルを取得しているVOICEROIDと目的のVOICEROIDが一致しているか確認
+                    //一致していなかったらハンドルを初期化してもう1回
+                    if (!(rootHandle.Current.Name.StartsWith(voiceroidNames[ConfigData.Index])))
                     {
-                        //現在ハンドルを取得しているVOICEROIDと目的のVOICEROIDが一致しているか確認
-                        //一致していなかったらハンドルを初期化してもう1回
-                        if (!(rootHandle.Current.Name.StartsWith("VOICEROID＋ " + voiceroidNames[ConfigData.Index])))
-                        {
-                            rootHandle = null;
-                        }
+                        rootHandle = null;
+                    } else {
+                        YukarinetteLogger.Instance.Info(rootHandle.Current.Name + " のハンドル取得 成功");
+                        return;
                     }
                 }
             }
