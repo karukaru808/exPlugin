@@ -9,7 +9,7 @@ WAVEファイルであれば何でもOKなので、SEなどを流すことも可
 1. __[Releases](https://github.com/karukaru808/exPlugin/releases)__ からダウンロードしてくる。
 1. ダウンロードしたDLLファイルを、ゆかりねっとをインストールした場所にあるpluginsフォルダへ移動する。  
    例：`C:\Program Files (x86)\OKAYULU STYLE\ゆかりねっと\plugins`
-1. ゆかりねっとを起動すると同一フォルダ内にCSVファイルが作られるので、 __2行目以降__ にキーワードとWAVEファイルパスを記入する。  
+1. ゆかりねっとを起動すると `%AppData%\Local\Yukarinette\plugins` にCSVファイルが作られるので、 __2行目以降__ にキーワードとWAVEファイルパスを記入する。  
    例：`いらっしゃいませ,C:\Users\User\Music\VOICELOID+\東北きりたん exVOICE\あいさつ_基本語\いらっしゃいませ！.wav`
 1. 設定画面から使用するVOICEROIDを指定する。
 1. キーワードを喋る。
@@ -22,9 +22,9 @@ CSVファイルの書き方が正しいか確認してください。正しい�
 WAVEファイルパスが正しいか確認してください。また __絶対パスでないと再生できません。__ 相対パスには対応していません。  
 設定画面で正しいVOICEROIDが指定されているか確認してください。正しくないとWAVEファイルは再生されません。
 #### Q2
-確認したけど動かない。
+確認したけど再生されない。そもそも起動しないなど。
 #### A2
-ゆかりねっとのスクリーンショットを撮って __[Twitter](https://twitter.com/_karukaru_)__ まで連絡下さい。その際CSVファイルの内容と、使用しているVOICEROIDも教えてください。
+`%AppData%\Local\Yukarinette\Logs` にある最新のLogファイルとCSVファイルを用意して __[Twitter](https://twitter.com/_karukaru_)__ まで連絡下さい。
 #### Q3
 バグを見つけた。こんな機能が欲しい。その他意見など。
 #### A3
