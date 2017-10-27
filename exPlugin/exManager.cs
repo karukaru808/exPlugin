@@ -54,7 +54,7 @@ namespace exPlugin
                 {
                     //VOICEROID.exeが見つからなかった場合
                     YukarinetteLogger.Instance.Error("15秒待機 タイムアウト");
-                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + voiceroidNames[ConfigData.Index] + " が起動していません。");
+                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + voiceroidNames[ConfigData.vIndex] + " が起動していません。");
                     stopwatch.Stop();
                     //throw new TimeoutException(pluginName + "Voiceroid process has been waiting 15 seconds, start-up was not completed.");
                 }
@@ -73,15 +73,15 @@ namespace exPlugin
                     stpControl = (IntPtr)btnStop.Current.NativeWindowHandle;
                     btnSaveWave = rootHandle.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "btnSaveWave", PropertyConditionFlags.IgnoreCase));
                     YukarinetteLogger.Instance.Info("プラグイン起動 成功");
-                    YukarinetteLogger.Instance.Info("コントロール中VOICEROID : " + voiceroidNames[ConfigData.Index]);
+                    YukarinetteLogger.Instance.Info("コントロール中VOICEROID : " + voiceroidNames[ConfigData.vIndex]);
                     YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "正常起動しました。");
-                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "選択したVOICEROID : " + voiceroidNames[ConfigData.Index]);
+                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "選択したVOICEROID : " + voiceroidNames[ConfigData.vIndex]);
                 }
                 catch
                 {
                     //ハンドルが取得できなかった場合、ウィンドウが見つかっていない
-                    YukarinetteLogger.Instance.Error(voiceroidNames[ConfigData.Index] + " のコントロール取得 失敗");
-                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + voiceroidNames[ConfigData.Index] + "のコントロールを取得できませんでした。");
+                    YukarinetteLogger.Instance.Error(voiceroidNames[ConfigData.vIndex] + " のコントロール取得 失敗");
+                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + voiceroidNames[ConfigData.vIndex] + "のコントロールを取得できませんでした。");
                     return;
                 }
             }
@@ -216,7 +216,7 @@ namespace exPlugin
 
                     //現在ハンドルを取得しているVOICEROIDと目的のVOICEROIDが一致しているか確認
                     //一致していなかったらハンドルを初期化してもう1回
-                    if (!(rootHandle.Current.Name.StartsWith(voiceroidNames[ConfigData.Index])))
+                    if (!(rootHandle.Current.Name.StartsWith(voiceroidNames[ConfigData.vIndex])))
                     {
                         rootHandle = null;
                     } else {

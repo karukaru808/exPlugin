@@ -10,7 +10,8 @@ namespace exPlugin
         // 設定項目
         public static string version;
         public static string csvPath;
-        public static int Index;
+        public static int vIndex;
+        public static int oIndex;
 
         public string PluginVersion
         {
@@ -22,6 +23,32 @@ namespace exPlugin
             set
             {
                 version = value;
+            }
+        }
+
+        public int OutputIndex
+        {
+            get
+            {
+                return oIndex;
+            }
+
+            set
+            {
+                oIndex = value;
+            }
+        }
+
+        public int VOICEROIDIndex
+        {
+            get
+            {
+                return vIndex;
+            }
+
+            set
+            {
+                vIndex = value;
             }
         }
 
@@ -38,18 +65,7 @@ namespace exPlugin
             }
         }
 
-        public int VOICEROIDIndex
-        {
-            get
-            {
-                return Index;
-            }
 
-            set
-            {
-                Index = value;
-            }
-        }
 
         public ConfigData()
         {
@@ -57,12 +73,17 @@ namespace exPlugin
 
             //プラグインのバージョン情報
             version = (Assembly.GetExecutingAssembly().GetName().Version).ToString();
+            
+            //音声出力先情報
+            oIndex = 0;
+
+            //使用VOICEROID情報
+            vIndex = 0;
 
             //設定ファイルの位置情報
             csvPath = Path.Combine(Path.Combine(YukarinetteCommon.AppSettingFolder, "Plugins"), ConfigManager.fileName + ".csv");
 
-            //使用VOICEROID情報
-            Index = 0;
+
         }
         
 
