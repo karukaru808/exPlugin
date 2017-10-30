@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using Yukarinette;
@@ -56,8 +57,9 @@ namespace exPlugin
             // 設定項目初期化
 
             //プラグインのバージョン情報
-            version = (Assembly.GetExecutingAssembly().GetName().Version).ToString();
-
+            //version = (Assembly.GetExecutingAssembly().GetName().Version).ToString();     //アセンブリバージョン
+            version = FileVersionInfo.GetVersionInfo((new Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath).FileVersion;        //ファイルバージョン
+            
             //設定ファイルの位置情報
             csvPath = Path.Combine(Path.Combine(YukarinetteCommon.AppSettingFolder, "Plugins"), ConfigManager.fileName + ".csv");
 

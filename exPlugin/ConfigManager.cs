@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -13,7 +14,7 @@ namespace exPlugin
         public ConfigData configData
         {
             get;
-            protected set;
+            set;
         }
 
         public static string configPath
@@ -47,8 +48,8 @@ namespace exPlugin
         {
             if (!File.Exists(configPath))
             {
+                //Configファイルが存在しないなら新規作成
                 CreateNewSetting();
-
                 return;
             }
 
@@ -59,26 +60,34 @@ namespace exPlugin
                 {
                     using (var streamReader = new StreamReader(fileStream, Encoding.UTF8))
                     {
+                        //データの整理
                         var xmlSerializer = new XmlSerializer(typeof(ConfigData));
-
-                        configData = (ConfigData)xmlSerializer.Deserialize(streamReader);
                         
-                        //もし設定ファイルのバージョンとプラグインのバージョンが不一致ならば
-                        if (configData.PluginVersion != (Assembly.GetExecutingAssembly().GetName().Version).ToString())
-                        {
-                            //新しい設定ファイルを作成する
-                            CreateNewSetting();
-                            YukarinetteLogger.Instance.Info("設定ファイル バージョン相違");
-                            YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルのバージョンが違います。初期値で動作します。");
-                        }
+                        //データのコピー
+                        configData = (ConfigData)xmlSerializer.Deserialize(streamReader);
                     }
+
+                    //filestreamをクローズして解放する
+                    fileStream.Close();
                 }
             }
             catch   // 失敗したら新しくファイルを作る
             {
                 CreateNewSetting();
-                YukarinetteLogger.Instance.Info("設定ファイル 読み取り不可");
+                YukarinetteLogger.Instance.Error("設定ファイル 読み取り不可");
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルが読み取れませんでした。初期値で動作します。");
+            }
+
+            //YukarinetteConsoleMessage.Instance.WriteMessage(configData.PluginVersion);
+            //YukarinetteConsoleMessage.Instance.WriteMessage(FileVersionInfo.GetVersionInfo((new Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath).FileVersion);
+
+            //もし設定ファイルのバージョンとプラグインのバージョンが不一致ならば
+            if (configData.PluginVersion != FileVersionInfo.GetVersionInfo((new Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath).FileVersion.ToString())
+            {
+                //新しい設定ファイルを作成する
+                YukarinetteLogger.Instance.Error("設定ファイル バージョン相違　FileVersion: " + configData.PluginVersion + ", PluginVersion: " + FileVersionInfo.GetVersionInfo((new Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath).FileVersion);
+                CreateNewSetting();                
+                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルのバージョンが違います。初期値で動作します。");
             }
         }
 
@@ -87,22 +96,17 @@ namespace exPlugin
         {            
             if (!File.Exists(ConfigData.csvPath))
             {
-                using (FileStream fs = File.Create(ConfigData.csvPath))
+                try
                 {
-                    // UTF-8でエンコードして書き込むためのStreamWriterを作成
-                    using (StreamWriter streamWrite = new StreamWriter(fs, Encoding.GetEncoding("UTF-8")))
-                    {
-                        //ヘッダを書き込む
-                        streamWrite.WriteLine("キーワード,ファイルパス（フルパス）\r\n,");
-                    }
-
-                    // ファイルストリームを閉じて、変更を確定させる
-                    // 呼ばなくても using を抜けた時点で Dispose メソッドが呼び出される
-                    fs.Close();
+                    CreateNewCSV();
+                    YukarinetteLogger.Instance.Error("CSVファイル 未検出");
+                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが見つかりませんでした。新規作成します。");
                 }
-                YukarinetteLogger.Instance.Info("設定ファイル 未検出");
-                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが見つかりませんでした。新規作成します。");
-                return;
+                catch
+                {
+                    YukarinetteLogger.Instance.Error("CSVファイル 未検出　新規作成失敗");
+                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが見つかりませんでした。また新規作成に失敗しました。読書権限があるか確認してください。");
+                }
             }
         }
 
@@ -124,6 +128,17 @@ namespace exPlugin
                         {
                             List<string> addData = new List<string>();
                             string line = streamReader.ReadLine();   //一行ずつ読み込む
+
+                            //foreach で書いた
+                            string[] splitDatas = line.Split(',');   //','区切りで分割したものを配列に追加
+                            foreach (string splitData in splitDatas)
+                            {
+                                addData.Add(splitData);     //追加用のList<string>の作成
+                            }
+                            csvData.Add(addData);       //List<List<string>>のList<string>部分の追加
+
+                            /*
+                            //for こっちは動いてる
                             string[] splitData = line.Split(',');   //','区切りで分割したものを配列に追加
                             for (int i = 0; i < splitData.Length; i++)
                             {
@@ -131,19 +146,15 @@ namespace exPlugin
                             }
                             //addData.Add("\n");
                             csvData.Add(addData);   //List<List<string>>のList<string>部分の追加
+                            */
                         }
                     }
                 }
             }
             catch   //失敗したら新しくファイルを作る
             {
-                using (FileStream fs = File.Create(ConfigData.csvPath))
-                {
-                    // ファイルストリームを閉じて、変更を確定させる
-                    // 呼ばなくても using を抜けた時点で Dispose メソッドが呼び出される
-                    fs.Close();
-                }
-                YukarinetteLogger.Instance.Info("CSVファイル 読み取り不可");
+                CreateNewCSV();
+                YukarinetteLogger.Instance.Error("CSVファイル 読み取り不可");
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが読み取れませんでした。初期値で動作します。");
             }
         }
@@ -151,38 +162,73 @@ namespace exPlugin
         // 設定ファイル保存
         public void Save()
         {
+            //そもそもデータがnullなら弾き返す
             if (configData == null)
             {
+                YukarinetteLogger.Instance.Error("設定ファイル　データNULL");
+                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "Error!　設定ファイルに書き込むデータが存在しません。");
+                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "Error!　このメッセージが出た場合は Twitter まで連絡ください。");
                 return;
             }
 
             try
             {
+                //設定フォルダのパスを取得　デフォ：%AppData%\Local\Yukarinette\plugins
                 var settingDirectory = Path.GetDirectoryName(configPath);
 
+                //設定フォルダが存在しないなら
                 if (!Directory.Exists(settingDirectory))
                 {
+                    //設定フォルダの新規作成
                     Directory.CreateDirectory(settingDirectory);
                 }
 
-                using (var fileStream = new FileStream(configPath, FileMode.Create))
+                //ファイルストリームの取得
+                using (var filestream = new FileStream(configPath, FileMode.Create))
                 {
-                    using (var streamWriter = new StreamWriter(fileStream, Encoding.UTF8))
+                    //filestreamに対してUTF-8で書き込み準備
+                    using (var streamWriter = new StreamWriter(filestream, Encoding.UTF8))
                     {
+                        //データ書き込み
                         new XmlSerializer(typeof(ConfigData)).Serialize(streamWriter, configData);
                     }
+
+                    //filestreamをクローズして解放する
+                    filestream.Close();
                 }
             }
             catch
             {
-                YukarinetteLogger.Instance.Info("設定ファイル 保存失敗");
+                YukarinetteLogger.Instance.Error("設定ファイル 保存失敗");
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルの保存に失敗しました。");
             }
         }
 
+        //Configファイル新規作成用関数
         public void CreateNewSetting()
         {
+            //Configファイルに書き込む内容の初期化
             configData = new ConfigData();
+
+            //保存
+            Save();
+        }
+
+        //CSVファイル新規作成用関数
+        public void CreateNewCSV()
+        {
+            using (FileStream filestream = File.Create(ConfigData.csvPath))
+            {
+                // UTF-8でエンコードして書き込むためのStreamWriterを作成
+                using (StreamWriter streamWrite = new StreamWriter(filestream, Encoding.GetEncoding("UTF-8")))
+                {
+                    //ヘッダを書き込む
+                    streamWrite.WriteLine("キーワード,ファイルパス（フルパス）\r\n,");
+                }
+
+                // ファイルストリームを閉じて、変更を確定させる
+                filestream.Close();
+            }
         }
     }
 }

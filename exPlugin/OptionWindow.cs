@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows;
@@ -34,7 +35,7 @@ namespace exPlugin
         private void Save(ConfigManager manager)
         {
             // 設定欄の内容を設定に保存
-            ConfigData.version = (Assembly.GetExecutingAssembly().GetName().Version).ToString();
+            ConfigData.version = FileVersionInfo.GetVersionInfo((new Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath).FileVersion;
             ConfigData.csvPath = CSVPathTextBox.Text;
             ConfigData.Index = VOICELOIDSelected.SelectedIndex;
 

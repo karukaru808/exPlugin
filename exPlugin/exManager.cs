@@ -53,9 +53,10 @@ namespace exPlugin
                 if (15000L <= stopwatch.ElapsedMilliseconds)
                 {
                     //VOICEROID.exeが見つからなかった場合
-                    YukarinetteLogger.Instance.Error("15秒待機 タイムアウト");
+                    YukarinetteLogger.Instance.Error("15秒待機　タイムアウト　VOICEROID: " + voiceroidNames[ConfigData.Index]);
                     YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + voiceroidNames[ConfigData.Index] + " が起動していません。");
                     stopwatch.Stop();
+                    return;
                     //throw new TimeoutException(pluginName + "Voiceroid process has been waiting 15 seconds, start-up was not completed.");
                 }
             }
@@ -72,15 +73,13 @@ namespace exPlugin
                     AutomationElement btnStop = rootHandle.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "btnStop", PropertyConditionFlags.IgnoreCase));
                     stpControl = (IntPtr)btnStop.Current.NativeWindowHandle;
                     btnSaveWave = rootHandle.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "btnSaveWave", PropertyConditionFlags.IgnoreCase));
-                    YukarinetteLogger.Instance.Info("プラグイン起動 成功");
-                    YukarinetteLogger.Instance.Info("コントロール中VOICEROID : " + voiceroidNames[ConfigData.Index]);
-                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "正常起動しました。");
-                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "選択したVOICEROID : " + voiceroidNames[ConfigData.Index]);
+                    YukarinetteLogger.Instance.Info("プラグイン起動　成功　VOICEROID: " + rootHandle.Current.Name);
+                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "正常起動しました。　VOICEROID: " + rootHandle.Current.Name);
                 }
                 catch
                 {
                     //ハンドルが取得できなかった場合、ウィンドウが見つかっていない
-                    YukarinetteLogger.Instance.Error(voiceroidNames[ConfigData.Index] + " のコントロール取得 失敗");
+                    YukarinetteLogger.Instance.Error(voiceroidNames[ConfigData.Index] + " のコントロール取得　失敗");
                     YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + voiceroidNames[ConfigData.Index] + "のコントロールを取得できませんでした。");
                     return;
                 }
@@ -122,6 +121,31 @@ namespace exPlugin
                         //音声保存ボタンがFalseになるまでループ（最長1秒）
                         Stopwatch stopwatch = new Stopwatch();
                         stopwatch.Start();
+                        
+                        //1秒間回す
+                        while(1000L > stopwatch.ElapsedMilliseconds)
+                        {
+                            //音声保存ボタンがEnabledじゃない（False）ならVOICEROIDを停止   //WAVEパスが空だとバグるので回避
+                            //if (!btnSaveWave.Current.IsEnabled && !string.IsNullOrWhiteSpace(ConfigManager.csvData[index][1]))
+                            if (!btnSaveWave.Current.IsEnabled)
+                            {
+                                //VOICEROIDを停止
+                                SendMessage(stpControl, 245u, IntPtr.Zero, IntPtr.Zero);
+                                //WAVE再生
+                                PlaySound(ConfigManager.csvData[index][1]);
+                                stopwatch.Stop();
+                                //関数を離脱
+                                return;
+                            }
+                        }
+
+                        //while を抜けた後は音声再生に失敗した場合のみ
+                        YukarinetteLogger.Instance.Error("音声再生　タイムアウト");
+                        stopwatch.Stop();
+                        //関数を離脱
+                        return;
+                        
+                        /*
                         while (true)
                         {
                             //音声保存ボタンがEnabledじゃない（False）ならVOICEROIDを停止   //WAVEパスが空だとバグるので回避
@@ -139,16 +163,18 @@ namespace exPlugin
 
                             if (1000L <= stopwatch.ElapsedMilliseconds)
                             {
-                                YukarinetteLogger.Instance.Info("音声再生 タイムアウト");
+                                YukarinetteLogger.Instance.Error("音声再生 タイムアウト");
                                 stopwatch.Stop();
-                                break;
+                                return;
                             }
                             //音声保存ボタンがFalseでないなら0.05秒後に再度Try
                             Thread.Sleep(50);
                         }
-
+                    
                         //foreach離脱
-                        break;
+                        return;
+                        */
+
                     }
                     else
                     {
@@ -168,25 +194,28 @@ namespace exPlugin
         {
             //デバッグ用文章
             //YukarinetteConsoleMessage.Instance.WriteMessage(WAVEPath);
-
-            //WAVEファイルの準備
-            SoundPlayer player = new SoundPlayer(@WAVEPath);
-
+            
             //WAVEファイルが存在するかチェック
             try
             {
+                //WAVEファイルの準備
+                SoundPlayer player = new SoundPlayer(@WAVEPath);
+
                 //WAVEファイルのロード
                 player.LoadAsync();
+
+                //player.Play();   //再生終了前に次のファイルを再生する（ぶつ切りされる）
+                player.PlaySync();   //再生終了後に次のファイルを再生する（読み上げも止まる）
+                
+                YukarinetteLogger.Instance.Info("音声再生　成功");
             }
             catch (Exception ex)
             {
                 //WAVEファイルが見つからなかったらエラー文章を出力
-                YukarinetteLogger.Instance.Info(ex.Message);
+                //例 : 指定された場所にサウンド ファイルが存在することを確認してください。　Path: C:\Users\karu\Music\VOICELOID+\東北きりたん exVOICE\あいさつ_基本語\asd.wav
+                YukarinetteLogger.Instance.Error(ex.Message + "　Path: " + WAVEPath);
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + ex.Message);
             }
-
-            //player.Play();   //再生終了前に次のファイルを再生する（ぶつ切りされる）
-            player.PlaySync();   //再生終了後に次のファイルを再生する（読み上げも止まる）
         }
 
 
@@ -220,7 +249,7 @@ namespace exPlugin
                     {
                         rootHandle = null;
                     } else {
-                        YukarinetteLogger.Instance.Info(rootHandle.Current.Name + " のハンドル取得 成功");
+                        YukarinetteLogger.Instance.Info(rootHandle.Current.Name + " のハンドル取得　成功");
                         return;
                     }
                 }
