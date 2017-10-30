@@ -79,8 +79,8 @@ namespace exPlugin
                 catch
                 {
                     //ハンドルが取得できなかった場合、ウィンドウが見つかっていない
-                    YukarinetteLogger.Instance.Error(voiceroidNames[ConfigData.Index] + " のコントロール取得　失敗");
-                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + voiceroidNames[ConfigData.Index] + "のコントロールを取得できませんでした。");
+                    YukarinetteLogger.Instance.Error(voiceroidNames[ConfigData.vIndex] + " のコントロール取得　失敗");
+                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + voiceroidNames[ConfigData.vIndex] + "のコントロールを取得できませんでした。");
                     return;
                 }
             }
@@ -245,7 +245,7 @@ namespace exPlugin
 
                     //現在ハンドルを取得しているVOICEROIDと目的のVOICEROIDが一致しているか確認
                     //一致していなかったらハンドルを初期化してもう1回
-                    if (!(rootHandle.Current.Name.StartsWith(voiceroidNames[ConfigData.Index])))
+                    if (!(rootHandle.Current.Name.StartsWith(voiceroidNames[ConfigData.vIndex])))
                     {
                         rootHandle = null;
                     } else {
