@@ -53,8 +53,8 @@ namespace exPlugin
                 if (15000L <= stopwatch.ElapsedMilliseconds)
                 {
                     //VOICEROID.exeが見つからなかった場合
-                    YukarinetteLogger.Instance.Error("15秒待機　タイムアウト　VOICEROID: " + voiceroidNames[ConfigData.Index]);
-                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + voiceroidNames[ConfigData.Index] + " が起動していません。");
+                    YukarinetteLogger.Instance.Error("15秒待機　タイムアウト　VOICEROID: " + voiceroidNames[ConfigData.vIndex]);
+                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + voiceroidNames[ConfigData.vIndex] + " が起動していません。");
                     stopwatch.Stop();
                     return;
                     //throw new TimeoutException(pluginName + "Voiceroid process has been waiting 15 seconds, start-up was not completed.");

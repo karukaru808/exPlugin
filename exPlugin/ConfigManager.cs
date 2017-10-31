@@ -74,7 +74,7 @@ namespace exPlugin
             catch   // 失敗したら新しくファイルを作る
             {
                 CreateNewSetting();
-                YukarinetteLogger.Instance.Error("設定ファイル 読み取り不可");
+                YukarinetteLogger.Instance.Error("設定ファイル　読み取り不可");
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルが読み取れませんでした。初期値で動作します。");
             }
 
@@ -85,7 +85,7 @@ namespace exPlugin
             if (configData.PluginVersion != FileVersionInfo.GetVersionInfo((new Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath).FileVersion.ToString())
             {
                 //新しい設定ファイルを作成する
-                YukarinetteLogger.Instance.Error("設定ファイル バージョン相違　FileVersion: " + configData.PluginVersion + ", PluginVersion: " + FileVersionInfo.GetVersionInfo((new Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath).FileVersion);
+                YukarinetteLogger.Instance.Error("設定ファイル　バージョン相違　FileVersion: " + configData.PluginVersion + ", PluginVersion: " + FileVersionInfo.GetVersionInfo((new Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath).FileVersion);
                 CreateNewSetting();                
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルのバージョンが違います。初期値で動作します。");
             }
@@ -99,12 +99,12 @@ namespace exPlugin
                 try
                 {
                     CreateNewCSV();
-                    YukarinetteLogger.Instance.Error("CSVファイル 未検出");
+                    YukarinetteLogger.Instance.Error("CSVファイル　未検出");
                     YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが見つかりませんでした。新規作成します。");
                 }
                 catch
                 {
-                    YukarinetteLogger.Instance.Error("CSVファイル 未検出　新規作成失敗");
+                    YukarinetteLogger.Instance.Error("CSVファイル　未検出　新規作成失敗");
                     YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが見つかりませんでした。また新規作成に失敗しました。読書権限があるか確認してください。");
                 }
             }
@@ -154,7 +154,7 @@ namespace exPlugin
             catch   //失敗したら新しくファイルを作る
             {
                 CreateNewCSV();
-                YukarinetteLogger.Instance.Error("CSVファイル 読み取り不可");
+                YukarinetteLogger.Instance.Error("CSVファイル　読み取り不可");
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが読み取れませんでした。初期値で動作します。");
             }
         }
@@ -199,7 +199,7 @@ namespace exPlugin
             }
             catch
             {
-                YukarinetteLogger.Instance.Error("設定ファイル 保存失敗");
+                YukarinetteLogger.Instance.Error("設定ファイル　保存失敗");
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルの保存に失敗しました。");
             }
         }
