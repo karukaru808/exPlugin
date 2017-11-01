@@ -1,7 +1,9 @@
-﻿using System;
+﻿using NAudio.CoreAudioApi;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Media;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Automation;
@@ -9,6 +11,14 @@ using Yukarinette;
 
 namespace exPlugin
 {
+
+    //音声デバイス保持用変数
+    public MMDevice OutputDevice
+    {
+        get;
+        set;
+    }
+
     // プラグインごとの動作
     public class exManager
     {
@@ -35,8 +45,14 @@ namespace exPlugin
         AutomationElement btnSaveWave = null;
 
         //プラグイン名保存用変数
-        private string pluginName;
+        private string pluginName = null;
 
+        //音声プレイヤー保持用変数
+        IWavePlayer wavePlayer = null;
+
+        //オーディオファイルリーダー保持用変数
+        AudioFileReader reader = null;
+        
         public void Create(string pName)
         {
             // 音声認識開始時の初期化とか
@@ -97,6 +113,22 @@ namespace exPlugin
             stpControl = IntPtr.Zero;
             //音声保存ボタンのハンドル破棄
             btnSaveWave = null;
+
+            //WASAPI関連のリソース破棄
+            if (wavePlayer != null)
+            {
+                wavePlayer.Stop();
+            }
+            if (reader != null)
+            {
+                reader.Dispose();
+                reader = null;
+            }
+            if (wavePlayer != null)
+            {
+                wavePlayer.Dispose();
+                wavePlayer = null;
+            }
         }
 
         public void Speech(string text)
@@ -188,16 +220,77 @@ namespace exPlugin
         }
 
 
+        /// <summary>
+        /// WasapiOut を生成して、IWavePlayer で返す
+        /// </summary>	
+        private IWavePlayer CreateDevice()
+        {
+            YukarinetteConsoleMessage.Instance.WriteMessage("2");
+            WasapiOut wasapiOut = new WasapiOut(OutputDevice, AudioClientShareMode.Shared, false, 100);
+            YukarinetteConsoleMessage.Instance.WriteMessage("3");
+            return wasapiOut as IWavePlayer;
+        }
 
-        //WAVEファイルを再生する関数
-        private void PlaySound(string WAVEPath)
+
+        //音声ファイルを再生する関数
+        private void PlaySound(string Path)
         {
             //デバッグ用文章
-            //YukarinetteConsoleMessage.Instance.WriteMessage(WAVEPath);
-            
-            //WAVEファイルが存在するかチェック
+            //YukarinetteConsoleMessage.Instance.WriteMessage(Path);
+            if (OutputDevice == null)
+            {
+                YukarinetteConsoleMessage.Instance.WriteMessage("NULL");
+            }
+            else
+            {
+                YukarinetteConsoleMessage.Instance.WriteMessage("NO NULL");
+            }
+
+            //音声再生をTry
             try
             {
+                YukarinetteConsoleMessage.Instance.WriteMessage("1");
+                //デバイス、共有モード、イベントコールバック無効、レイテンシ=100ms でプレイヤーを設定
+                //wavePlayer = (IWavePlayer)(new WasapiOut(OutputDevice, AudioClientShareMode.Shared, false, 100));
+                wavePlayer = CreateDevice();
+                YukarinetteConsoleMessage.Instance.WriteMessage("4");
+
+                //音声ファイルのロード
+                //対応フォーマット：.wav, .mp3, .aiff, MFCreateSourceReaderFromURL()で読めるもの（動画ファイルも可？）
+                reader = new AudioFileReader(@Path);
+
+                //sampleChannelにreaderをセット
+                var sampleChannel = new SampleChannel(reader, true);
+
+                /*
+                //ここでボリューム等（？）の設定が可能？
+                //サンプルの AudioPlaybackPanel.cs を参照
+                sampleChannel.PreVolumeMeter+= OnPreVolumeMeter;
+                setVolumeDelegate = vol => sampleChannel.Volume = vol;
+                */
+
+                //sampleChannelのボリュームをセット
+                var postVolumeMeter = new MeteringSampleProvider(sampleChannel);
+
+                /*
+                //ここでボリューム等（？）の設定が可能？
+                //サンプルの AudioPlaybackPanel.cs を参照
+                postVolumeMeter.StreamVolume += OnPostVolumeMeter;
+                */
+                
+                //型の明確化
+                ISampleProvider sampleProvider = postVolumeMeter;
+
+                //AudioFileReader から sampleProvider まで1つのtryにまとめられているため、エラー処理はこれらを別のtryにすることが推奨される（？）
+                //別のtryにしておけばエラーの特定楽だよね
+
+                //プレイヤーに設定をセット
+                wavePlayer.Init(sampleProvider);
+
+                //再生
+                wavePlayer.Play();
+
+                /*
                 //WAVEファイルの準備
                 SoundPlayer player = new SoundPlayer(@WAVEPath);
 
@@ -206,14 +299,15 @@ namespace exPlugin
 
                 //player.Play();   //再生終了前に次のファイルを再生する（ぶつ切りされる）
                 player.PlaySync();   //再生終了後に次のファイルを再生する（読み上げも止まる）
-                
+                */
+
                 YukarinetteLogger.Instance.Info("音声再生　成功");
             }
             catch (Exception ex)
             {
                 //WAVEファイルが見つからなかったらエラー文章を出力
                 //例 : 指定された場所にサウンド ファイルが存在することを確認してください。　Path: C:\Users\karu\Music\VOICELOID+\東北きりたん exVOICE\あいさつ_基本語\asd.wav
-                YukarinetteLogger.Instance.Error(ex.Message + "　Path: " + WAVEPath);
+                YukarinetteLogger.Instance.Error(ex.Message + "　Path: " + Path);
                 YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + ex.Message);
             }
         }

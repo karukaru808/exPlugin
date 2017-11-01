@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Windows;
+using Yukarinette;
 
 namespace exPlugin
 {
@@ -24,6 +25,10 @@ namespace exPlugin
             OutputSelected.SelectedIndex = ConfigData.oIndex;
             VOICELOIDSelected.SelectedIndex = ConfigData.vIndex;
             CSVPathTextBox.Text = ConfigData.csvPath;
+
+            //設定からデバイスのデータを渡す
+            var exm = new exManager(); 
+            exm.OutputDevice = (MMDevice)OutputSelected.SelectedValue;
         }
 
         // 設定画面表示時実行
@@ -45,13 +50,16 @@ namespace exPlugin
             ConfigData.oIndex = OutputSelected.SelectedIndex;
             ConfigData.vIndex = VOICELOIDSelected.SelectedIndex;
             ConfigData.csvPath = CSVPathTextBox.Text;
-
             manager.Save();
         }
 
         //OKボタンクリック時動作
         private void okButton_Click(object sender, RoutedEventArgs e)
         {
+            //選択したデバイスを渡す
+            var exm = new exManager();
+            exm.OutputDevice = (MMDevice)OutputSelected.SelectedValue;
+            
             DialogResult = new bool?(true);
         }
 

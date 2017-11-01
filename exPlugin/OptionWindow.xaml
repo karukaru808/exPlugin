@@ -8,7 +8,7 @@
                 <!-- コンボボックスで音声出力先選択 -->
                 <TextBlock Margin="5,5,5,0">音声出力先を選択してください。</TextBlock>
 
-                <ComboBox Name="OutputSelected" Margin="10,5,10,0" DisplayMemberPath="Description">
+                <ComboBox Name="OutputSelected" Margin="10,5,10,0">
                 </ComboBox>
                 
                 <!-- コンボボックスでVOICELOID選択 -->
