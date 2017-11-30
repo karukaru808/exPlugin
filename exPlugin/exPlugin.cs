@@ -28,6 +28,7 @@
 // 
 
 
+using NAudio.CoreAudioApi;
 using Yukarinette;
 
 namespace exPlugin
@@ -37,7 +38,7 @@ namespace exPlugin
     {
         ConfigManager configManager;
 
-        exManager exManager;
+        exManager exmanager;
 
         public override string Name
         {
@@ -62,7 +63,10 @@ namespace exPlugin
             //string appPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             //YukarinetteConsoleMessage.Instance.WriteMessage(appPath);
 
-            exManager = new exManager();
+            exmanager = new exManager();
+            exmanager.getWasapiOutputDevices();
+            exmanager.OutputDevice = (MMDevice)exmanager.ComboItems[ConfigData.oIndex].Device;
+
         }
 
         public override void Closed()
@@ -82,7 +86,7 @@ namespace exPlugin
             // 音声認識開始時実行
             //音声認識スタートボタン押したときに呼び出される
             configManager.LoadCSV();
-            exManager.Create(Name);
+            exmanager.Create(Name);
             //YukarinetteConsoleMessage.Instance.WriteMessage("Create");
         }
 
@@ -90,7 +94,7 @@ namespace exPlugin
         {
             // 音声認識終了時実行
             //音声認識終了ボタン押したときに呼び出される
-            exManager.Dispose();
+            exmanager.Dispose();
             //YukarinetteConsoleMessage.Instance.WriteMessage("Dispose");
         }
 
@@ -98,7 +102,7 @@ namespace exPlugin
         {
             // 音声認識時実行
             //何か喋った時に呼び出される
-            exManager.Speech(text);
+            exmanager.Speech(text);
             //YukarinetteConsoleMessage.Instance.WriteMessage("3");
         }
 

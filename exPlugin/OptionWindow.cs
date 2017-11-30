@@ -13,6 +13,8 @@ namespace exPlugin
 {
     public partial class OptionWindow
     {
+        exManager exmanager;
+
         private OptionWindow()
         {
             InitializeComponent();
@@ -20,15 +22,12 @@ namespace exPlugin
             Owner = Application.Current.MainWindow;
 
             // 現在の設定を設定欄に反映
-            //getOutputDevices();
-            getWasapiOutputDevices();
+            exmanager = new exManager();
+            exmanager.getWasapiOutputDevices();
+            setWasapiOutputDevices();
             OutputSelected.SelectedIndex = ConfigData.oIndex;
             VOICELOIDSelected.SelectedIndex = ConfigData.vIndex;
             CSVPathTextBox.Text = ConfigData.csvPath;
-
-            //設定からデバイスのデータを渡す
-            var exm = new exManager(); 
-            exm.OutputDevice = (MMDevice)OutputSelected.SelectedValue;
         }
 
         // 設定画面表示時実行
@@ -57,8 +56,7 @@ namespace exPlugin
         private void okButton_Click(object sender, RoutedEventArgs e)
         {
             //選択したデバイスを渡す
-            var exm = new exManager();
-            exm.OutputDevice = (MMDevice)OutputSelected.SelectedValue;
+            exmanager.OutputDevice = (MMDevice)OutputSelected.SelectedValue;
             
             DialogResult = new bool?(true);
         }
@@ -85,53 +83,18 @@ namespace exPlugin
         }
 
         //音声出力先取得関数
-        //WaveOut版
-        private void getWaveOutputDevices()
-        {
-            for (int id = 0; id < WaveOut.DeviceCount; id++)
-            {
-                WaveOutCapabilities capabilities = WaveOut.GetCapabilities(id);
-                OutputSelected.Items.Add(String.Format("{0}:{1}", id, capabilities.ProductName));
-                //Yukarinette.YukarinetteConsoleMessage.Instance.WriteMessage(capabilities.ProductName);
-            }
-        }
-
         //WASAPI版
-        //コンボボックス用クラス
-        class WasapiDeviceComboItem
+        // コンボボックスのset関数
+        private void setWasapiOutputDevices()
         {
-            public string Description { get; set; }
-            public MMDevice Device { get; set; }
-        }
-
-        // コンボボックス用の初期化関数
-        private void getWasapiOutputDevices()
-        {
-            //var enumerator = new MMDeviceEnumerator();
-            var endPoints = new MMDeviceEnumerator().EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-            var comboItems = new List<WasapiDeviceComboItem>();
-            foreach (var endPoint in endPoints)
-            {
-                var comboItem = new WasapiDeviceComboItem();
-                
-                //表示セット
-                comboItem.Description = string.Format("{0}", endPoint.FriendlyName);
-
-                //データセット
-                comboItem.Device = endPoint;
-                
-                //リストに追加
-                comboItems.Add(comboItem);
-            }
-
             //Descriptionをコンボボックスに表示させる設定
             OutputSelected.DisplayMemberPath = "Description";
             
             //選択したDeviceのデータを渡す設定
             OutputSelected.SelectedValuePath = "Device";
-            
+
             //上記データのバインディング
-            OutputSelected.ItemsSource = comboItems;
+            OutputSelected.ItemsSource = exmanager.ComboItems;
             
             //上記コンボボックスへのデータバインディングについてはややこしいので下記参照
             //http://heppoen.seesaa.net/article/430970064.html

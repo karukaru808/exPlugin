@@ -138,7 +138,7 @@ namespace exPlugin
                             csvData.Add(addData);       //List<List<string>>のList<string>部分の追加
 
                             /*
-                            //for こっちは動いてる
+                            //for こっちも動いてる
                             string[] splitData = line.Split(',');   //','区切りで分割したものを配列に追加
                             for (int i = 0; i < splitData.Length; i++)
                             {

@@ -7,21 +7,33 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Automation;
+using System.Windows.Documents;
 using Yukarinette;
 
 namespace exPlugin
 {
 
-    //音声デバイス保持用変数
-    public MMDevice OutputDevice
-    {
-        get;
-        set;
-    }
-
     // プラグインごとの動作
     public class exManager
     {
+        //音声デバイス保持用変数
+        public MMDevice OutputDevice
+        {
+            get;
+            set;
+        }
+
+        //コンボボックス用クラス
+        public class WasapiDeviceComboItem
+        {
+            public string Description { get; set; }
+            public MMDevice Device { get; set; }
+        }
+
+        //コンボボックス用リスト
+        public List<WasapiDeviceComboItem> ComboItems = new List<WasapiDeviceComboItem>();
+
+
         //VOICEROIDをコントロールするのに必要
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
@@ -249,10 +261,14 @@ namespace exPlugin
             //音声再生をTry
             try
             {
+                YukarinetteConsoleMessage.Instance.WriteMessage("-2");
+                WasapiOut test = new WasapiOut(OutputDevice, AudioClientShareMode.Shared, false, 100);
+                YukarinetteConsoleMessage.Instance.WriteMessage("-1");
+                wavePlayer = (IWavePlayer)test;
                 YukarinetteConsoleMessage.Instance.WriteMessage("1");
                 //デバイス、共有モード、イベントコールバック無効、レイテンシ=100ms でプレイヤーを設定
-                //wavePlayer = (IWavePlayer)(new WasapiOut(OutputDevice, AudioClientShareMode.Shared, false, 100));
-                wavePlayer = CreateDevice();
+                //wavePlayer = (IWavePlayer)new WasapiOut(OutputDevice, AudioClientShareMode.Shared, false, 100);
+                //wavePlayer = CreateDevice();
                 YukarinetteConsoleMessage.Instance.WriteMessage("4");
 
                 //音声ファイルのロード
@@ -351,7 +367,48 @@ namespace exPlugin
         }
 
 
+        //音声出力先取得関数
+        //WASAPI版
+        // コンボボックス用の初期化関数
+        public void getWasapiOutputDevices()
+        {
+            //要素を追加する前に全て削除する
+            ComboItems.Clear();
 
+            var endPoints = new MMDeviceEnumerator().EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+            foreach (var endPoint in endPoints)
+            {
+                var comboItem = new WasapiDeviceComboItem();
+
+                //表示セット
+                comboItem.Description = string.Format("{0}", endPoint.FriendlyName);
+
+                //データセット
+                comboItem.Device = endPoint;
+
+                //リストに追加
+                ComboItems.Add(comboItem);
+            }
+
+            //余分なキャパシティを削除
+            ComboItems.TrimExcess();
+
+            /*
+            //Descriptionをコンボボックスに表示させる設定
+            OutputSelected.DisplayMemberPath = "Description";
+
+            //選択したDeviceのデータを渡す設定
+            OutputSelected.SelectedValuePath = "Device";
+
+            //上記データのバインディング
+            OutputSelected.ItemsSource = ComboItems;
+            */
+
+            //上記コンボボックスへのデータバインディングについてはややこしいので下記参照
+            //http://heppoen.seesaa.net/article/430970064.html
+            //http://blog.hiros-dot.net/?p=5759
+            //https://code.msdn.microsoft.com/XAMLVBC-ComboBox-1e1f8339
+        }
 
     }
 }
