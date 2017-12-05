@@ -17,12 +17,18 @@ namespace exPlugin
         private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         //対応するVOICEROIDを列挙 
-        string[] voiceroidNames = {
+        public static string[] voiceroidNames = {
                                           "VOICEROID＋ 結月ゆかり",
                                           "VOICEROID＋ 民安ともえ",
                                           "VOICEROID＋ 東北ずん子",
+                                          "VOICEROID＋ 琴葉茜",
+                                          "VOICEROID＋ 琴葉葵",
                                           "VOICEROID＋ 京町セイカ",
-                                          "VOICEROID＋ 東北きりたん"
+                                          "VOICEROID＋ 東北きりたん",
+                                          "VOICEROID＋ 鷹の爪 吉田くん",
+                                          "VOICEROID＋ 水奈瀬コウ",
+                                          "VOICEROID＋ 月読アイ",
+                                          "VOICEROID＋ 月読ショウタ"
                                       };
 
         //VOICEROIDハンドル保持用変数
@@ -121,9 +127,9 @@ namespace exPlugin
                         //音声保存ボタンがFalseになるまでループ（最長1秒）
                         Stopwatch stopwatch = new Stopwatch();
                         stopwatch.Start();
-                        
+
                         //1秒間回す
-                        while(1000L > stopwatch.ElapsedMilliseconds)
+                        while (1000L > stopwatch.ElapsedMilliseconds)
                         {
                             //音声保存ボタンがEnabledじゃない（False）ならVOICEROIDを停止   //WAVEパスが空だとバグるので回避
                             //if (!btnSaveWave.Current.IsEnabled && !string.IsNullOrWhiteSpace(ConfigManager.csvData[index][1]))
@@ -144,37 +150,6 @@ namespace exPlugin
                         stopwatch.Stop();
                         //関数を離脱
                         return;
-                        
-                        /*
-                        while (true)
-                        {
-                            //音声保存ボタンがEnabledじゃない（False）ならVOICEROIDを停止   //WAVEパスが空だとバグるので回避
-                            if (!btnSaveWave.Current.IsEnabled && !string.IsNullOrWhiteSpace(ConfigManager.csvData[index][1]))
-                            {
-                                //VOICEROIDを停止
-                                SendMessage(stpControl, 245u, IntPtr.Zero, IntPtr.Zero);
-                                //WAVE再生
-                                PlaySound(ConfigManager.csvData[index][1]);
-                                stopwatch.Stop();
-                                YukarinetteLogger.Instance.Info("音声再生 成功");
-                                //whileを離脱
-                                break;
-                            }
-
-                            if (1000L <= stopwatch.ElapsedMilliseconds)
-                            {
-                                YukarinetteLogger.Instance.Error("音声再生 タイムアウト");
-                                stopwatch.Stop();
-                                return;
-                            }
-                            //音声保存ボタンがFalseでないなら0.05秒後に再度Try
-                            Thread.Sleep(50);
-                        }
-                    
-                        //foreach離脱
-                        return;
-                        */
-
                     }
                     else
                     {
@@ -199,14 +174,20 @@ namespace exPlugin
             try
             {
                 //WAVEファイルの準備
-                SoundPlayer player = new SoundPlayer(@WAVEPath);
+                var waveReader = new NAudio.Wave.WaveFileReader(@WAVEPath);
 
-                //WAVEファイルのロード
-                player.LoadAsync();
+                //再生用の入れ物用意
+                var waveOut = new NAudio.Wave.WaveOut();
 
-                //player.Play();   //再生終了前に次のファイルを再生する（ぶつ切りされる）
-                player.PlaySync();   //再生終了後に次のファイルを再生する（読み上げも止まる）
-                
+                //再生デバイスの指定
+                waveOut.DeviceNumber = ConfigData.oIndex;
+
+                //設定とWAVEファイルをセット
+                waveOut.Init(waveReader);
+
+                //再生
+                waveOut.Play();
+                                
                 YukarinetteLogger.Instance.Info("音声再生　成功");
             }
             catch (Exception ex)
