@@ -23,6 +23,7 @@ namespace exPlugin
             // 現在の設定を設定欄に反映
             getWasapiOutputDevices();
             OutputSelected.SelectedIndex = ConfigData.oIndex;
+            setVOICEROIDList();
             VOICEROIDSelected.SelectedIndex = ConfigData.vIndex;
             CSVPathTextBox.Text = ConfigData.csvPath;
         }
