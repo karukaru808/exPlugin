@@ -16,24 +16,7 @@ namespace exPlugin
     // プラグインごとの動作
     public class exManager
     {
-        //音声デバイス保持用変数
-        public MMDevice OutputDevice
-        {
-            get;
-            set;
-        }
-
-        //コンボボックス用クラス
-        public class WasapiDeviceComboItem
-        {
-            public string Description { get; set; }
-            public MMDevice Device { get; set; }
-        }
-
-        //コンボボックス用リスト
-        public List<WasapiDeviceComboItem> ComboItems = new List<WasapiDeviceComboItem>();
-
-
+        
         //VOICEROIDをコントロールするのに必要
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
@@ -76,6 +59,7 @@ namespace exPlugin
             stopwatch.Start();
             while (rootHandle == null)
             {
+                //0.1秒待機
                 Thread.Sleep(100);
                 HandleGet();
                 if (15000L <= stopwatch.ElapsedMilliseconds)
@@ -130,16 +114,13 @@ namespace exPlugin
             if (wavePlayer != null)
             {
                 wavePlayer.Stop();
+                wavePlayer.Dispose();
+                wavePlayer = null;
             }
             if (reader != null)
             {
                 reader.Dispose();
                 reader = null;
-            }
-            if (wavePlayer != null)
-            {
-                wavePlayer.Dispose();
-                wavePlayer = null;
             }
         }
 
@@ -181,6 +162,9 @@ namespace exPlugin
                                 //関数を離脱
                                 return;
                             }
+
+                            //0.05秒待機
+                            Thread.Sleep(50);
                         }
 
                         //while を抜けた後は音声再生に失敗した場合のみ
@@ -188,37 +172,6 @@ namespace exPlugin
                         stopwatch.Stop();
                         //関数を離脱
                         return;
-                        
-                        /*
-                        while (true)
-                        {
-                            //音声保存ボタンがEnabledじゃない（False）ならVOICEROIDを停止   //WAVEパスが空だとバグるので回避
-                            if (!btnSaveWave.Current.IsEnabled && !string.IsNullOrWhiteSpace(ConfigManager.csvData[index][1]))
-                            {
-                                //VOICEROIDを停止
-                                SendMessage(stpControl, 245u, IntPtr.Zero, IntPtr.Zero);
-                                //WAVE再生
-                                PlaySound(ConfigManager.csvData[index][1]);
-                                stopwatch.Stop();
-                                YukarinetteLogger.Instance.Info("音声再生 成功");
-                                //whileを離脱
-                                break;
-                            }
-
-                            if (1000L <= stopwatch.ElapsedMilliseconds)
-                            {
-                                YukarinetteLogger.Instance.Error("音声再生 タイムアウト");
-                                stopwatch.Stop();
-                                return;
-                            }
-                            //音声保存ボタンがFalseでないなら0.05秒後に再度Try
-                            Thread.Sleep(50);
-                        }
-                    
-                        //foreach離脱
-                        return;
-                        */
-
                     }
                     else
                     {
@@ -232,44 +185,20 @@ namespace exPlugin
         }
 
 
-        /// <summary>
-        /// WasapiOut を生成して、IWavePlayer で返す
-        /// </summary>	
-        private IWavePlayer CreateDevice()
-        {
-            YukarinetteConsoleMessage.Instance.WriteMessage("2");
-            WasapiOut wasapiOut = new WasapiOut(OutputDevice, AudioClientShareMode.Shared, false, 100);
-            YukarinetteConsoleMessage.Instance.WriteMessage("3");
-            return wasapiOut as IWavePlayer;
-        }
-
-
         //音声ファイルを再生する関数
         private void PlaySound(string Path)
         {
             //デバッグ用文章
             //YukarinetteConsoleMessage.Instance.WriteMessage(Path);
-            if (OutputDevice == null)
-            {
-                YukarinetteConsoleMessage.Instance.WriteMessage("NULL");
-            }
-            else
-            {
-                YukarinetteConsoleMessage.Instance.WriteMessage("NO NULL");
-            }
 
             //音声再生をTry
             try
             {
-                YukarinetteConsoleMessage.Instance.WriteMessage("-2");
-                WasapiOut test = new WasapiOut(OutputDevice, AudioClientShareMode.Shared, false, 100);
-                YukarinetteConsoleMessage.Instance.WriteMessage("-1");
-                wavePlayer = (IWavePlayer)test;
-                YukarinetteConsoleMessage.Instance.WriteMessage("1");
+                var endPoints = new MMDeviceEnumerator().EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+                var OutputDevice = endPoints[ConfigData.oIndex];
+
                 //デバイス、共有モード、イベントコールバック無効、レイテンシ=100ms でプレイヤーを設定
-                //wavePlayer = (IWavePlayer)new WasapiOut(OutputDevice, AudioClientShareMode.Shared, false, 100);
-                //wavePlayer = CreateDevice();
-                YukarinetteConsoleMessage.Instance.WriteMessage("4");
+                wavePlayer = (IWavePlayer)new WasapiOut(OutputDevice, AudioClientShareMode.Shared, false, 100);
 
                 //音声ファイルのロード
                 //対応フォーマット：.wav, .mp3, .aiff, MFCreateSourceReaderFromURL()で読めるもの（動画ファイルも可？）
@@ -304,20 +233,17 @@ namespace exPlugin
                 wavePlayer.Init(sampleProvider);
 
                 //再生
+                YukarinetteLogger.Instance.Info("音声再生　開始");
                 wavePlayer.Play();
 
-                /*
-                //WAVEファイルの準備
-                SoundPlayer player = new SoundPlayer(@WAVEPath);
+                while (wavePlayer.PlaybackState.ToString() == "Playing")
+                {
+                    //0.05秒ごとに再生終了チェック
+                    Thread.Sleep(50);
+                    //YukarinetteConsoleMessage.Instance.WriteMessage(wavePlayer.PlaybackState.ToString());
+                }                
 
-                //WAVEファイルのロード
-                player.LoadAsync();
-
-                //player.Play();   //再生終了前に次のファイルを再生する（ぶつ切りされる）
-                player.PlaySync();   //再生終了後に次のファイルを再生する（読み上げも止まる）
-                */
-
-                YukarinetteLogger.Instance.Info("音声再生　成功");
+                YukarinetteLogger.Instance.Info("音声再生　終了");
             }
             catch (Exception ex)
             {
@@ -364,50 +290,6 @@ namespace exPlugin
                     }
                 }
             }
-        }
-
-
-        //音声出力先取得関数
-        //WASAPI版
-        // コンボボックス用の初期化関数
-        public void getWasapiOutputDevices()
-        {
-            //要素を追加する前に全て削除する
-            ComboItems.Clear();
-
-            var endPoints = new MMDeviceEnumerator().EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-            foreach (var endPoint in endPoints)
-            {
-                var comboItem = new WasapiDeviceComboItem();
-
-                //表示セット
-                comboItem.Description = string.Format("{0}", endPoint.FriendlyName);
-
-                //データセット
-                comboItem.Device = endPoint;
-
-                //リストに追加
-                ComboItems.Add(comboItem);
-            }
-
-            //余分なキャパシティを削除
-            ComboItems.TrimExcess();
-
-            /*
-            //Descriptionをコンボボックスに表示させる設定
-            OutputSelected.DisplayMemberPath = "Description";
-
-            //選択したDeviceのデータを渡す設定
-            OutputSelected.SelectedValuePath = "Device";
-
-            //上記データのバインディング
-            OutputSelected.ItemsSource = ComboItems;
-            */
-
-            //上記コンボボックスへのデータバインディングについてはややこしいので下記参照
-            //http://heppoen.seesaa.net/article/430970064.html
-            //http://blog.hiros-dot.net/?p=5759
-            //https://code.msdn.microsoft.com/XAMLVBC-ComboBox-1e1f8339
         }
 
     }

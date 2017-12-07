@@ -136,17 +136,6 @@ namespace exPlugin
                                 addData.Add(splitData);     //追加用のList<string>の作成
                             }
                             csvData.Add(addData);       //List<List<string>>のList<string>部分の追加
-
-                            /*
-                            //for こっちも動いてる
-                            string[] splitData = line.Split(',');   //','区切りで分割したものを配列に追加
-                            for (int i = 0; i < splitData.Length; i++)
-                            {
-                                addData.Add(splitData[i]);   //追加用のList<string>の作成
-                            }
-                            //addData.Add("\n");
-                            csvData.Add(addData);   //List<List<string>>のList<string>部分の追加
-                            */
                         }
                     }
                 }

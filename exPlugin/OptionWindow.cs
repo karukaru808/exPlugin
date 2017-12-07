@@ -13,7 +13,6 @@ namespace exPlugin
 {
     public partial class OptionWindow
     {
-        exManager exmanager;
 
         private OptionWindow()
         {
@@ -22,9 +21,7 @@ namespace exPlugin
             Owner = Application.Current.MainWindow;
 
             // 現在の設定を設定欄に反映
-            exmanager = new exManager();
-            exmanager.getWasapiOutputDevices();
-            setWasapiOutputDevices();
+            getWasapiOutputDevices();
             OutputSelected.SelectedIndex = ConfigData.oIndex;
             VOICELOIDSelected.SelectedIndex = ConfigData.vIndex;
             CSVPathTextBox.Text = ConfigData.csvPath;
@@ -54,10 +51,7 @@ namespace exPlugin
 
         //OKボタンクリック時動作
         private void okButton_Click(object sender, RoutedEventArgs e)
-        {
-            //選択したデバイスを渡す
-            exmanager.OutputDevice = (MMDevice)OutputSelected.SelectedValue;
-            
+        {            
             DialogResult = new bool?(true);
         }
 
@@ -84,22 +78,17 @@ namespace exPlugin
 
         //音声出力先取得関数
         //WASAPI版
-        // コンボボックスのset関数
-        private void setWasapiOutputDevices()
+        private void getWasapiOutputDevices()
         {
-            //Descriptionをコンボボックスに表示させる設定
-            OutputSelected.DisplayMemberPath = "Description";
-            
-            //選択したDeviceのデータを渡す設定
-            OutputSelected.SelectedValuePath = "Device";
+            //要素を追加する前に全て削除する
+            OutputSelected.Items.Clear();
 
-            //上記データのバインディング
-            OutputSelected.ItemsSource = exmanager.ComboItems;
-            
-            //上記コンボボックスへのデータバインディングについてはややこしいので下記参照
-            //http://heppoen.seesaa.net/article/430970064.html
-            //http://blog.hiros-dot.net/?p=5759
-            //https://code.msdn.microsoft.com/XAMLVBC-ComboBox-1e1f8339
+            var endPoints = new MMDeviceEnumerator().EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+            foreach (var endPoint in endPoints)
+            {
+                //表示セット
+                OutputSelected.Items.Add(string.Format("{0}", endPoint.FriendlyName));
+            }
         }
 
     }

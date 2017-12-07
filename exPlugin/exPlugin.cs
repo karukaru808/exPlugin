@@ -38,7 +38,7 @@ namespace exPlugin
     {
         ConfigManager configManager;
 
-        exManager exmanager;
+        exManager exManager;
 
         public override string Name
         {
@@ -63,10 +63,7 @@ namespace exPlugin
             //string appPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             //YukarinetteConsoleMessage.Instance.WriteMessage(appPath);
 
-            exmanager = new exManager();
-            exmanager.getWasapiOutputDevices();
-            exmanager.OutputDevice = (MMDevice)exmanager.ComboItems[ConfigData.oIndex].Device;
-
+            exManager = new exManager();
         }
 
         public override void Closed()
@@ -86,7 +83,7 @@ namespace exPlugin
             // 音声認識開始時実行
             //音声認識スタートボタン押したときに呼び出される
             configManager.LoadCSV();
-            exmanager.Create(Name);
+            exManager.Create(Name);
             //YukarinetteConsoleMessage.Instance.WriteMessage("Create");
         }
 
@@ -94,7 +91,7 @@ namespace exPlugin
         {
             // 音声認識終了時実行
             //音声認識終了ボタン押したときに呼び出される
-            exmanager.Dispose();
+            exManager.Dispose();
             //YukarinetteConsoleMessage.Instance.WriteMessage("Dispose");
         }
 
@@ -102,7 +99,7 @@ namespace exPlugin
         {
             // 音声認識時実行
             //何か喋った時に呼び出される
-            exmanager.Speech(text);
+            exManager.Speech(text);
             //YukarinetteConsoleMessage.Instance.WriteMessage("3");
         }
 
