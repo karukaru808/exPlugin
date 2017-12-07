@@ -11,8 +11,8 @@
                 <ComboBox Name="OutputSelected" Margin="10,5,10,0">
                 </ComboBox>
                 
-                <!-- コンボボックスでVOICELOID選択 -->
-                <TextBlock Margin="5,15,5,0">使用するVOICELOIDを選択してください。正しく設定しないとexVOICEが再生されません。</TextBlock>
+                <!-- コンボボックスでVOICEROID選択 -->
+                <TextBlock Margin="5,15,5,0">使用するVOICEROIDを選択してください。正しく設定しないと音楽ファイルは再生されません。</TextBlock>
 
                 <ComboBox Name="VOICEROIDSelected" Margin="10,5,10,0">
                 </ComboBox>
