@@ -22,12 +22,18 @@ namespace exPlugin
         private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         //対応するVOICEROIDを列挙 
-        string[] voiceroidNames = {
+        public static string[] voiceroidNames = {
                                           "VOICEROID＋ 結月ゆかり",
                                           "VOICEROID＋ 民安ともえ",
                                           "VOICEROID＋ 東北ずん子",
+                                          "VOICEROID＋ 琴葉茜",
+                                          "VOICEROID＋ 琴葉葵",
                                           "VOICEROID＋ 京町セイカ",
-                                          "VOICEROID＋ 東北きりたん"
+                                          "VOICEROID＋ 東北きりたん",
+                                          "VOICEROID＋ 鷹の爪 吉田くん",
+                                          "VOICEROID＋ 水奈瀬コウ",
+                                          "VOICEROID＋ 月読アイ",
+                                          "VOICEROID＋ 月読ショウタ"
                                       };
 
         //VOICEROIDハンドル保持用変数
@@ -146,9 +152,9 @@ namespace exPlugin
                         //音声保存ボタンがFalseになるまでループ（最長1秒）
                         Stopwatch stopwatch = new Stopwatch();
                         stopwatch.Start();
-                        
+
                         //1秒間回す
-                        while(1000L > stopwatch.ElapsedMilliseconds)
+                        while (1000L > stopwatch.ElapsedMilliseconds)
                         {
                             //音声保存ボタンがEnabledじゃない（False）ならVOICEROIDを停止   //WAVEパスが空だとバグるので回避
                             //if (!btnSaveWave.Current.IsEnabled && !string.IsNullOrWhiteSpace(ConfigManager.csvData[index][1]))

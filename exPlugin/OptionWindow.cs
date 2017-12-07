@@ -23,7 +23,7 @@ namespace exPlugin
             // 現在の設定を設定欄に反映
             getWasapiOutputDevices();
             OutputSelected.SelectedIndex = ConfigData.oIndex;
-            VOICELOIDSelected.SelectedIndex = ConfigData.vIndex;
+            VOICEROIDSelected.SelectedIndex = ConfigData.vIndex;
             CSVPathTextBox.Text = ConfigData.csvPath;
         }
 
@@ -44,7 +44,7 @@ namespace exPlugin
             // 設定欄の内容を設定に保存
             ConfigData.version = FileVersionInfo.GetVersionInfo((new Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath).FileVersion;
             ConfigData.oIndex = OutputSelected.SelectedIndex;
-            ConfigData.vIndex = VOICELOIDSelected.SelectedIndex;
+            ConfigData.vIndex = VOICEROIDSelected.SelectedIndex;
             ConfigData.csvPath = CSVPathTextBox.Text;
             manager.Save();
         }
@@ -87,7 +87,17 @@ namespace exPlugin
             foreach (var endPoint in endPoints)
             {
                 //表示セット
-                OutputSelected.Items.Add(string.Format("{0}", endPoint.FriendlyName));
+                OutputSelected.Items.Add(endPoint.FriendlyName);
+            }
+        }
+
+        //VOICEROIDのリストをセットする関数
+        private void setVOICEROIDList()
+        {
+            foreach (var voiceroidName in exManager.voiceroidNames)
+            {
+                //表示セット
+                VOICEROIDSelected.Items.Add(voiceroidName);
             }
         }
 
