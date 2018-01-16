@@ -13,10 +13,10 @@ namespace exPlugin.Controller
         private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         //停止（旧VOICEROID用）
-        public IntPtr btnStp;
+        public IntPtr btnStp = IntPtr.Zero;
 
         //音声保存ボタンのハンドル保持用変数
-        public AutomationElement btnSW;
+        public AutomationElement btnSW = null;
 
         //初期動作
         protected override void ControllerCreate(int hWnd)
@@ -52,10 +52,15 @@ namespace exPlugin.Controller
             return true;
         }
 
-        //音声保存ボタンの状態をチェックする関数
-        protected override bool BtnSWCheck()
+        //音声保存ボタンの状態をチェックする関数（ついでにボタンがnullでないこともチェック）
+        protected override bool BtnCheck()
         {
-            return btnSW.Current.IsEnabled;
+            if (btnStp == IntPtr.Zero || btnSW == null)
+            {
+                return false;
+            }
+
+            return !btnSW.Current.IsEnabled;
         }
 
         //"VOICEROID"と名の付くプロセス一覧を取得

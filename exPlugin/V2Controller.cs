@@ -11,10 +11,10 @@ namespace exPlugin.Controller
     public class V2Controller : exManager
     {
         //停止（VOICEROID2用）
-        public V2Controller btnStp;
+        public V2Controller btnStp = null;
 
         //音声保存ボタンのハンドル保持用変数
-        public V2Controller btnSW;
+        public V2Controller btnSW = null;
 
         //先頭送りボタン？：デバッグ用
         //public V2Controller btnWC;
@@ -106,9 +106,14 @@ namespace exPlugin.Controller
             //btnWC = Children[3].Children[3].Children[3];
         }
 
-        //音声保存ボタンの状態をチェックする関数
-        protected override bool BtnSWCheck()
+        //音声保存ボタンの状態をチェックする関数（ついでにボタンがnullでないこともチェック）
+        protected override bool BtnCheck()
         {
+            if (btnStp == null || btnSW == null)
+            {
+                return false;
+            }
+
             object btnSWObje = btnSW.Accessible.get_accState(0);
             //object btnWCObje = btnWC.Accessible.get_accState(0);
 
@@ -122,10 +127,10 @@ namespace exPlugin.Controller
             //1はボタン押せない状態
             if ((int)btnSWObje == 1)
             {
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         //"VoiceroidEditor"と名の付くプロセス一覧を取得

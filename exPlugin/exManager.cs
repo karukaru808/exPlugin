@@ -1,11 +1,11 @@
-﻿using exPlugin.Controller;
-using NAudio.CoreAudioApi;
+﻿using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Automation;
 using Yukarinette;
 
@@ -32,9 +32,13 @@ namespace exPlugin
                                       };
 
         //VOICEROIDウィンドウのハンドル保持用変数
-        public AutomationElement root;
+        public AutomationElement root = null;
 
-        private bool loop;
+        //VOICEROIDの探索続行判定用変数
+        private bool taskFlag;
+
+        //VOICEROIDの探索タスク定義用変数
+        private Task task = null;
 
         //初期動作
         public void Create()
@@ -43,66 +47,84 @@ namespace exPlugin
 
             // 音声認識開始時の初期化とか
 
-            loop = true;
+            //VOICEROIDの探索開始
+            taskFlag = true;
 
-            //VOICEROIDのハンドル取得まで最長10秒待つ
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            do
+            //タスク内容記述
+            task = Task.Run(delegate
             {
-                //0.5秒待機
-                Thread.Sleep(500);
+                //VOICEROIDのハンドル取得まで最長10秒待つ
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
 
-                //rootHandleの取得
-                root = RootHandleGet(voiceroidNames[ConfigData.vIndex]);
-
-                //RootHandleGetはTask化して回さないと他の処理ができなくなる
-                //VOICEROID探してる最中にDisposeとかできなくなる
-                //参考：VoiceroidManager->MonitoringVoiceroid
-
-                //10秒タイムアウト判定
-                if (10000L <= stopwatch.ElapsedMilliseconds)
+                //rootがnullならループする
+                while (root == null)
                 {
-                    //VOICEROID.exeが見つからなかった場合
-                    YukarinetteLogger.Instance.Error("10秒待機　タイムアウト　VOICEROID: " + voiceroidNames[ConfigData.vIndex]);
-                    YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + voiceroidNames[ConfigData.vIndex] + " が起動していません。");
-                    stopwatch.Stop();
-                    return;
-                    //throw new TimeoutException(pluginName + "Voiceroid process has been waiting 15 seconds, start-up was not completed.");
-                }
-            } while (root == null && loop);
-            stopwatch.Stop();
+                    //10秒タイムアウト判定
+                    if (10000L <= stopwatch.ElapsedMilliseconds)
+                    {
+                        //VOICEROID.exeが見つからなかった場合
+                        YukarinetteLogger.Instance.Error("10秒待機　タイムアウト　VOICEROID: " + voiceroidNames[ConfigData.vIndex]);
+                        YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + voiceroidNames[ConfigData.vIndex] + " が起動していません。");
 
-            //YukarinetteLogger.Instance.Info("Rootハンドル取得　成功");
+                        stopwatch.Stop();
+                        Dispose();
+                        return;
+                    }
 
-            //停止ボタンと音声再生ボタンのハンドルを取得
-            if (loop)
-            {
-                try
-                {
-                    ControllerCreate(root.Current.NativeWindowHandle);
-                    BtnHandleGet(root);
+                    //0.5秒待機
+                    Thread.Sleep(500);
 
-                    YukarinetteLogger.Instance.Info("プラグイン起動　成功　VOICEROID: " + root.Current.Name);
-                    YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + "正常起動しました。　VOICEROID: " + root.Current.Name);
+                    //rootHandleの取得
+                    root = RootHandleGet(voiceroidNames[ConfigData.vIndex]);
+
+                    //rootに値が入った時にコントローラを起動&ボタンのハンドル取得
+                    if (root != null)
+                    {
+                        //コントローラを取得
+                        bool flag = Controller();
+                        
+                        //コントローラの結果がtrue & taskFlagがtrue
+                        //コントローラの取得に成功して、途中でDisposeされていない場合
+                        if (flag && taskFlag)
+                        {
+                            YukarinetteLogger.Instance.Info("プラグイン起動　成功　VOICEROID: " + root.Current.Name);
+                            YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + "正常起動しました。　VOICEROID: " + root.Current.Name);
+                        }
+                        //コントローラの取得に失敗して、途中でDisposeされていない場合
+                        else if (!flag && taskFlag)
+                        {
+                            //YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + ex.Message);
+                            //ハンドルが取得できなかった場合、ウィンドウが見つかっていない
+                            YukarinetteLogger.Instance.Error(voiceroidNames[ConfigData.vIndex] + " のコントロール取得　失敗");
+                            YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + voiceroidNames[ConfigData.vIndex] + "のコントロールを取得できませんでした。");
+
+                            stopwatch.Stop();
+                            Dispose();
+                            return;
+                        }
+                        else
+                        {
+                            //YukarinetteConsoleMessage.Instance.WriteMessage("Task Kill !!!");
+                        }
+
+                        //タスクを破棄
+                        stopwatch.Stop();
+                        task = null;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + ex.Message);
-                    //ハンドルが取得できなかった場合、ウィンドウが見つかっていない
-                    YukarinetteLogger.Instance.Error(voiceroidNames[ConfigData.vIndex] + " のコントロール取得　失敗");
-                    YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + voiceroidNames[ConfigData.vIndex] + "のコントロールを取得できませんでした。");
-                    return;
-                }
-            }
+
+                stopwatch.Stop();
+                return;
+            });
         }
 
-        
+        //リソース破棄
         public void Dispose()
         {
-            // 音声認識終了時のリソース破棄とか
-
-            loop = false;
+            //タスクを破棄
+            taskFlag = false;
+            task = null;
 
             //VOICEROIDハンドル破棄
             root = null;
@@ -110,7 +132,7 @@ namespace exPlugin
             //子クラスで初期化
             Clear();
         }
-        
+
 
         public void Speech(string text)
         {
@@ -134,8 +156,8 @@ namespace exPlugin
                     //1秒間回す
                     while (1000L > stopwatch.ElapsedMilliseconds)
                     {
-                        //音声保存ボタンがEnabledじゃない（False）ならVOICEROIDを停止
-                        if (!BtnSWCheck())
+                        //音声保存ボタンが not Enabled == true ならVOICEROIDを停止
+                        if (BtnCheck())
                         {
                             //YukarinetteConsoleMessage.Instance.WriteMessage("Check OK");
 
@@ -167,7 +189,7 @@ namespace exPlugin
             }
 
         }
-        
+
         //音声ファイルを再生する関数
         private void PlaySound(string Path)
         {
@@ -299,10 +321,53 @@ namespace exPlugin
             return null;
         }
 
+        private bool Controller()
+        {
+
+            //音声保存ボタンがFalseになるまでループ（最長1秒）
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            //1秒間回す
+            while (1000L > stopwatch.ElapsedMilliseconds && taskFlag)
+            {
+                try
+                {
+                    //コントローラを起動
+                    ControllerCreate(root.Current.NativeWindowHandle);
+
+                    //ボタンのハンドル取得
+                    BtnHandleGet(root);
+
+                    //取得成功
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    /*
+                    YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + ex.Message);
+                    //ハンドルが取得できなかった場合、ウィンドウが見つかっていない
+                    YukarinetteLogger.Instance.Error(voiceroidNames[ConfigData.vIndex] + " のコントロール取得　失敗");
+                    YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + voiceroidNames[ConfigData.vIndex] + "のコントロールを取得できませんでした。");
+
+                    stopwatch.Stop();
+                    Dispose();
+                    */
+                }
+
+                //0.1秒待機
+                Thread.Sleep(100);
+            }
+
+            //取得失敗
+            stopwatch.Stop();
+            return false;
+        }
+
         //デバッグ用
         public void BeforeSpeech()
         {
-            BtnSWCheck();
+            BtnCheck();
         }
 
         //オーバーライドする関数たち
@@ -311,6 +376,6 @@ namespace exPlugin
         protected abstract void ControllerCreate(int hWnd);
         protected abstract void BtnHandleGet(AutomationElement root);
         protected abstract bool StopAction();
-        protected abstract bool BtnSWCheck();
+        protected abstract bool BtnCheck();
     }
 }
