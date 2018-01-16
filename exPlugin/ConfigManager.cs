@@ -31,12 +31,8 @@ namespace exPlugin
 
         public static List<List<string>> csvData = new List<List<string>>();
 
-        private string pluginName;
-
-        public ConfigManager(string pName)
+        public ConfigManager()
         {
-            pluginName = pName + " : ";
-
             configData = null;
 
             fileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
@@ -62,7 +58,7 @@ namespace exPlugin
                     {
                         //データの整理
                         var xmlSerializer = new XmlSerializer(typeof(ConfigData));
-                        
+
                         //データのコピー
                         configData = (ConfigData)xmlSerializer.Deserialize(streamReader);
                     }
@@ -71,11 +67,13 @@ namespace exPlugin
                     fileStream.Close();
                 }
             }
-            catch   // 失敗したら新しくファイルを作る
+            catch (Exception ex)   // 失敗したら新しくファイルを作る
             {
                 CreateNewSetting();
+                YukarinetteLogger.Instance.Error(ex.Message);
                 YukarinetteLogger.Instance.Error("設定ファイル　読み取り不可");
-                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルが読み取れませんでした。初期値で動作します。");
+                YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + ex.Message);
+                YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + "設定ファイルが読み取れませんでした。新規作成します。");
             }
 
             //YukarinetteConsoleMessage.Instance.WriteMessage(configData.PluginVersion);
@@ -86,27 +84,80 @@ namespace exPlugin
             {
                 //新しい設定ファイルを作成する
                 YukarinetteLogger.Instance.Error("設定ファイル　バージョン相違　FileVersion: " + configData.PluginVersion + ", PluginVersion: " + FileVersionInfo.GetVersionInfo((new Uri(Assembly.GetExecutingAssembly().CodeBase)).LocalPath).FileVersion);
-                CreateNewSetting();                
-                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルのバージョンが違います。初期値で動作します。");
+                CreateNewSetting();
+                YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + "設定ファイルのバージョンが違います。新規作成します。");
             }
         }
 
+        // 設定ファイル保存
+        public void Save()
+        {
+            //そもそもデータがnullなら弾き返す
+            if (configData == null)
+            {
+                YukarinetteLogger.Instance.Error("設定ファイル　データNULL");
+                YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + "Error!　設定ファイルに書き込むデータが存在しません。");
+                YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + "Error!　このメッセージが出た場合は Twitter まで連絡ください。");
+                return;
+            }
+
+            try
+            {
+                //設定フォルダのパスを取得　デフォ：%AppData%\Local\Yukarinette\plugins
+                var settingDirectory = Path.GetDirectoryName(configPath);
+
+                //設定フォルダが存在しないなら
+                if (!Directory.Exists(settingDirectory))
+                {
+                    //設定フォルダの新規作成
+                    Directory.CreateDirectory(settingDirectory);
+                }
+
+                //ファイルストリームの取得
+                using (var filestream = new FileStream(configPath, FileMode.Create))
+                {
+                    //filestreamに対してUTF-8で書き込み準備
+                    using (var streamWriter = new StreamWriter(filestream, Encoding.UTF8))
+                    {
+                        //データ書き込み
+                        new XmlSerializer(typeof(ConfigData)).Serialize(streamWriter, configData);
+                    }
+
+                    //filestreamをクローズして解放する
+                    filestream.Close();
+                }
+            }
+            catch(Exception ex)
+            {
+                YukarinetteLogger.Instance.Error(ex.Message);
+                YukarinetteLogger.Instance.Error("設定ファイル　保存失敗");
+                YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + ex.Message);
+                YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + "設定ファイルの保存に失敗しました。");
+            }
+        }
+
+        //設定ファイル新規作成用関数
+        public void CreateNewSetting()
+        {
+            //Configファイルに書き込む内容の初期化
+            configData = new ConfigData();
+
+            //保存
+            Save();
+        }
+
+        /// <summary>
+        /// ここからCSVファイル操作
+        /// </summary>
+
         // CSVファイルが無かったら作成
         public void CheckCSV()
-        {            
+        {
             if (!File.Exists(ConfigData.csvPath))
             {
-                try
-                {
-                    CreateNewCSV();
-                    YukarinetteLogger.Instance.Error("CSVファイル　未検出");
-                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが見つかりませんでした。新規作成します。");
-                }
-                catch
-                {
-                    YukarinetteLogger.Instance.Error("CSVファイル　未検出　新規作成失敗");
-                    YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが見つかりませんでした。また新規作成に失敗しました。読書権限があるか確認してください。");
-                }
+                YukarinetteLogger.Instance.Error("CSVファイル　未検出");
+                YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + "CSVファイルが見つかりませんでした。新規作成します。");
+                CreateNewCSV();
             }
         }
 
@@ -140,84 +191,44 @@ namespace exPlugin
                     }
                 }
             }
-            catch   //失敗したら新しくファイルを作る
+            catch(Exception ex)   //失敗したら新しくファイルを作る
             {
-                CreateNewCSV();
+                YukarinetteLogger.Instance.Error(ex.Message);
                 YukarinetteLogger.Instance.Error("CSVファイル　読み取り不可");
-                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "CSVファイルが読み取れませんでした。初期値で動作します。");
+                //YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + ex.Message);
+                YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + "CSVファイルが読み取れませんでした。新規作成します。");
+                CreateNewCSV();
             }
-        }
-
-        // 設定ファイル保存
-        public void Save()
-        {
-            //そもそもデータがnullなら弾き返す
-            if (configData == null)
-            {
-                YukarinetteLogger.Instance.Error("設定ファイル　データNULL");
-                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "Error!　設定ファイルに書き込むデータが存在しません。");
-                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "Error!　このメッセージが出た場合は Twitter まで連絡ください。");
-                return;
-            }
-
-            try
-            {
-                //設定フォルダのパスを取得　デフォ：%AppData%\Local\Yukarinette\plugins
-                var settingDirectory = Path.GetDirectoryName(configPath);
-
-                //設定フォルダが存在しないなら
-                if (!Directory.Exists(settingDirectory))
-                {
-                    //設定フォルダの新規作成
-                    Directory.CreateDirectory(settingDirectory);
-                }
-
-                //ファイルストリームの取得
-                using (var filestream = new FileStream(configPath, FileMode.Create))
-                {
-                    //filestreamに対してUTF-8で書き込み準備
-                    using (var streamWriter = new StreamWriter(filestream, Encoding.UTF8))
-                    {
-                        //データ書き込み
-                        new XmlSerializer(typeof(ConfigData)).Serialize(streamWriter, configData);
-                    }
-
-                    //filestreamをクローズして解放する
-                    filestream.Close();
-                }
-            }
-            catch
-            {
-                YukarinetteLogger.Instance.Error("設定ファイル　保存失敗");
-                YukarinetteConsoleMessage.Instance.WriteMessage(pluginName + "設定ファイルの保存に失敗しました。");
-            }
-        }
-
-        //Configファイル新規作成用関数
-        public void CreateNewSetting()
-        {
-            //Configファイルに書き込む内容の初期化
-            configData = new ConfigData();
-
-            //保存
-            Save();
         }
 
         //CSVファイル新規作成用関数
         public void CreateNewCSV()
         {
-            using (FileStream filestream = File.Create(ConfigData.csvPath))
+            try
             {
-                // UTF-8でエンコードして書き込むためのStreamWriterを作成
-                using (StreamWriter streamWrite = new StreamWriter(filestream, Encoding.GetEncoding("UTF-8")))
+                using (FileStream filestream = File.Create(ConfigData.csvPath))
                 {
-                    //ヘッダを書き込む
-                    streamWrite.WriteLine("キーワード,ファイルパス（フルパス）\r\n,");
-                }
+                    // UTF-8でエンコードして書き込むためのStreamWriterを作成
+                    using (StreamWriter streamWrite = new StreamWriter(filestream, Encoding.GetEncoding("UTF-8")))
+                    {
+                        //ヘッダを書き込む
+                        streamWrite.WriteLine("キーワード,ファイルパス（フルパス）\r\n,");
+                    }
 
-                // ファイルストリームを閉じて、変更を確定させる
-                filestream.Close();
+                    // ファイルストリームを閉じて、変更を確定させる
+                    filestream.Close();
+                }
             }
+            catch (Exception ex)
+            {
+                YukarinetteLogger.Instance.Error(ex.Message);
+                YukarinetteLogger.Instance.Error("CSVファイル　新規作成失敗");
+                YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + ex.Message);
+                YukarinetteConsoleMessage.Instance.WriteMessage(exPlugin.ConsoleName + "CSVファイルの新規作成に失敗しました。手動で作成してください。");
+            }
+
         }
+
+
     }
 }

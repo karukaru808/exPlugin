@@ -28,31 +28,41 @@
 // 
 
 
-using NAudio.CoreAudioApi;
+using exPlugin.Controller;
 using Yukarinette;
 
 namespace exPlugin
 {
-    //こっちは主に呼び出し側（？）
+    //こっちは主に呼び出し側
     public class exPlugin : IYukarinetteInterface
     {
         ConfigManager configManager;
+        private exManager exManager;
 
-        exManager exManager;
+        private static string pName = "exPlugin";
 
         public override string Name
         {
             get
             {
                 // プラグイン名
-                return "exPlugin";
+                return pName;
+            }
+        }
+
+        public static string ConsoleName
+        {
+            get
+            {
+                // プラグイン名
+                return pName + " : ";
             }
         }
 
         public override void Loaded()
         {
             // 起動時実行
-            configManager = new ConfigManager(Name);
+            configManager = new ConfigManager();
             configManager.LoadConfig();
             configManager.CheckCSV();
             configManager.LoadCSV();
@@ -62,8 +72,6 @@ namespace exPlugin
             //実行ファイルがあるフォルダパスを取得する
             //string appPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             //YukarinetteConsoleMessage.Instance.WriteMessage(appPath);
-
-            exManager = new exManager();
         }
 
         public override void Closed()
@@ -80,27 +88,58 @@ namespace exPlugin
 
         public override void SpeechRecognitionStart()
         {
+            //YukarinetteConsoleMessage.Instance.WriteMessage("SpeechRecognitionStart");
+
+            if (ConfigData.vIndex != 0)
+            {
+                exManager = new V1Controller();
+            }
+            else
+            {
+                exManager = new V2Controller();
+            }
+
             // 音声認識開始時実行
             //音声認識スタートボタン押したときに呼び出される
             configManager.LoadCSV();
-            exManager.Create(Name);
-            //YukarinetteConsoleMessage.Instance.WriteMessage("Create");
+            exManager.Create();
+
+            //デバッグ用
+            //exManager.BeforeSpeech();
         }
 
         public override void SpeechRecognitionStop()
         {
             // 音声認識終了時実行
             //音声認識終了ボタン押したときに呼び出される
+            //YukarinetteConsoleMessage.Instance.WriteMessage("SpeechRecognitionStop");
             exManager.Dispose();
-            //YukarinetteConsoleMessage.Instance.WriteMessage("Dispose");
+        }
+
+        public override void BeforeSpeech(string text)
+        {
+            // 音声認識時実行
+            //何か喋った時に呼び出される
+            //Speechよりも前に処理される
+            //YukarinetteConsoleMessage.Instance.WriteMessage("BeforeSpeech");
+            //exManager.BeforeSpeech();
         }
 
         public override void Speech(string text)
         {
             // 音声認識時実行
             //何か喋った時に呼び出される
+            //YukarinetteConsoleMessage.Instance.WriteMessage("Speech");
             exManager.Speech(text);
-            //YukarinetteConsoleMessage.Instance.WriteMessage("3");
+        }
+
+        public override void AfterSpeech(string text)
+        {
+            // 音声認識時実行
+            //何か喋った時に呼び出される
+            //Speechが終わったら処理される
+            //YukarinetteConsoleMessage.Instance.WriteMessage("AfterSpeech");
+            //exManager.AfterSpeech();
         }
 
     }

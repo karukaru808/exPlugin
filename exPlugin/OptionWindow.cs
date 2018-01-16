@@ -1,13 +1,10 @@
 ﻿using Microsoft.Win32;
 using NAudio.CoreAudioApi;
-using NAudio.Wave;
 using System;
 using System.Diagnostics;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Windows;
-using Yukarinette;
 
 namespace exPlugin
 {
