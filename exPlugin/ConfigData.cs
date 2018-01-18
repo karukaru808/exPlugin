@@ -84,8 +84,6 @@ namespace exPlugin
 
             //設定ファイルの位置情報
             csvPath = Path.Combine(Path.Combine(YukarinetteCommon.AppSettingFolder, "Plugins"), ConfigManager.fileName + ".csv");
-
-
         }
         
 
